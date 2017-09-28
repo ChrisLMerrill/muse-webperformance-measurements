@@ -7,7 +7,7 @@ import org.musetest.core.step.*
 import java.util.*
 
 /**
- * Collects performance com.webperformance.muse.measurements on steps tagged for collection.
+ * Collects performance measurements on all steps.
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
