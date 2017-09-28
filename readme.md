@@ -1,0 +1,1 @@
+Adds tools for collecting, storing and summarizing measurements of events in a Muse test.
