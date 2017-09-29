@@ -1,10 +1,15 @@
 package com.webperformance.muse.measurements
 
-import org.musetest.core.*
-import org.musetest.core.events.*
-import org.musetest.core.step.*
-
+import mu.KotlinLogging
+import org.musetest.core.MuseEvent
+import org.musetest.core.MuseEventListener
+import org.musetest.core.MuseEventType
+import org.musetest.core.MuseExecutionContext
+import org.musetest.core.events.StepEvent
+import org.musetest.core.step.StepConfiguration
 import java.util.*
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Collects performance measurements on all steps.
@@ -37,6 +42,10 @@ class StepDurationCollector : MuseEventListener, DataCollector
 				val measurement = Measurement(end.timestampNanos - started)
 				measurements.add(measurement)
 				}
+			}
+		else if (event.type == MuseEventType.EndTest)
+			{
+			measurements.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
 			}
 		}
 	}

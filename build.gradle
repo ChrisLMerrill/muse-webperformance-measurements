@@ -7,8 +7,12 @@ repositories {
     jcenter()
 }
 
+version = 0.1
+group = 'com.webperformance.muse'
+
 dependencies {
-    compile 'org.musetest:muse-core:0.10'
+    compile 'org.musetest:muse-core:0.11'
+    compile 'io.github.microutils:kotlin-logging:1.4.6'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 
     testCompile 'org.musetest:muse-core-mocks:1.0+'
@@ -36,12 +40,12 @@ artifacts {
 // declare which packages Muse should scan for extensions
 jar {
     manifest {
-        attributes 'muse-package': 'com.webperformance.muse.com.webperformance.muse.measurements'
+        attributes 'muse-package': 'com.webperformance.muse.measurements'
     }
 }
 
 buildscript {
-    ext.kotlin_version = '1.1.50'
+    ext.kotlin_version = '1.1.51'
     repositories {
         mavenCentral()
     }
