@@ -1,6 +1,5 @@
 package com.webperformance.muse.measurements
 
-
 import org.musetest.core.MuseTypeId
 import org.musetest.core.context.ContextInitializer
 import org.musetest.core.context.initializers.ContextInitializerConfiguration
