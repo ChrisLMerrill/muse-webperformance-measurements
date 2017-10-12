@@ -1,0 +1,6 @@
+{
+  "durations" : [ {
+    "value" : 1000
+  } ],
+  "name" : "durations"
+}

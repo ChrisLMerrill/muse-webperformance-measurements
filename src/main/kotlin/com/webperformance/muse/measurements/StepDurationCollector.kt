@@ -5,6 +5,7 @@ import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseEventType
 import org.musetest.core.MuseExecutionContext
+import org.musetest.core.datacollection.DataCollector
 import org.musetest.core.events.StepEvent
 import org.musetest.core.step.StepConfiguration
 import java.util.*
@@ -18,12 +19,17 @@ private val logger = KotlinLogging.logger {}
  */
 class StepDurationCollector : MuseEventListener, DataCollector
 	{
-	val measurements: MutableList<Measurement> = mutableListOf()
 	private val startTime = HashMap<StepConfiguration, Long>()
+	private val data = StepDurations()
 
 	override fun initialize(context: MuseExecutionContext)
 		{
 		context.addEventListener(this)
+		}
+
+	override fun getData(): StepDurations
+		{
+		return data
 		}
 
 	override fun eventRaised(event: MuseEvent)
@@ -40,12 +46,12 @@ class StepDurationCollector : MuseEventListener, DataCollector
 			if (started != null)
 				{
 				val measurement = Measurement(end.timestampNanos - started)
-				measurements.add(measurement)
+				data.durations.add(measurement)
 				}
 			}
 		else if (event.type == MuseEventType.EndTest)
 			{
-			measurements.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
+			data.durations.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
 			}
 		}
 	}
