@@ -6,6 +6,7 @@ import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseEventType
 import org.musetest.core.MuseExecutionContext
 import org.musetest.core.context.initializers.ContextInitializerConfiguration
+import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.datacollection.DataCollector
 import org.musetest.core.events.StepEvent
 import org.musetest.core.step.StepConfiguration
@@ -30,7 +31,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	override fun getType(): String
 	{
-		return "com.webperformance.step-durations"
+		return TYPE
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
@@ -65,6 +66,28 @@ class StepDurationCollector : MuseEventListener, DataCollector
 			data.durations.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
 		}
 	}
+
+	companion object
+		{
+		val TYPE = "wpi.measurements.step-durations"
+		}
+	
+	// discovered by reflection
+	class StepDurationType : ContextInitializerType()
+	{
+		override fun getTypeId(): String
+		{
+			return StepDurationCollector.TYPE
+		}
+
+		override fun getDisplayName(): String
+		{
+			return "Step Duration"
+		}
+
+		override fun getShortDescription(): String
+		{
+			return "Measures and collects the durations of specified steps"
+		}
+	}
 }
-
-

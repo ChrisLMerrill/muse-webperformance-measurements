@@ -7,16 +7,21 @@ import java.io.OutputStream
 class StepDurations : TestResultData
 {
 	val durations: MutableList<Measurement> = mutableListOf()
-	private var _name: String = "durations"
+	
+	private var name: String? = null
+	override fun getName(): String?
+	{
+		return name
+	}
 
 	override fun setName(name: String)
 	{
-		_name = name
+		this.name = name
 	}
 
-	override fun getName(): String
+	override fun suggestFilename(): String
 	{
-		return _name
+		return name!! + ".json"
 	}
 
 	override fun write(outstream: OutputStream)
@@ -24,5 +29,4 @@ class StepDurations : TestResultData
 		val mapper = ObjectMapper()
 		mapper.writerWithDefaultPrettyPrinter().writeValue(outstream, this)
 	}
-
 }
