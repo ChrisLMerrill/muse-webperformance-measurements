@@ -6,9 +6,9 @@ import java.io.OutputStream
 
 class StepDurations : TestResultData
 {
-	val durations: MutableList<Measurement> = mutableListOf()
+	val durations: MutableMap<Long, MutableList<Long>> = mutableMapOf()
 	
-	private var name: String? = null
+	private var name: String? = "StepDurations"
 	override fun getName(): String?
 	{
 		return name

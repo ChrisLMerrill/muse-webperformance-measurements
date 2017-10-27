@@ -18,6 +18,7 @@ class BasicCollectorTests
 	fun collectSingleStepDuration()
 	{
 		val stepConfig = StepConfiguration("mock-step")
+		stepConfig.setMetadataField(StepConfiguration.META_ID, 9L)
 		val context = MockStepExecutionContext()
 		val startEvent = StepEvent(MuseEventType.StartStep, stepConfig, context)
 		val endEvent = MockStepEvent(MuseEventType.EndStep, stepConfig, context)
@@ -30,8 +31,11 @@ class BasicCollectorTests
 		context.raiseEvent(endEvent)
 		
 		val test_data = collector.data
-		Assert.assertEquals(1, test_data.durations.size.toLong())
-		Assert.assertEquals(1000L, test_data.durations[0].value.toLong())
+		Assert.assertEquals(1, test_data.durations.size)  // collected for 1 step
+		Assert.assertNotNull(test_data.durations.get(9L));
+		Assert.assertEquals(1, test_data.durations.get(9L)?.size)  // collected 1 duration for that step
+		Assert.assertNotNull(test_data.durations.get(9L)?.get(0));
+		Assert.assertEquals(1000L, test_data.durations.get(9L)?.get(0))
 
 		// Save the data and compare to the expected output
 		val outstream = ByteArrayOutputStream()

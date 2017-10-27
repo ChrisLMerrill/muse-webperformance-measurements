@@ -1,6 +1,6 @@
 {
-  "durations" : [ {
-    "value" : 1000
-  } ],
-  "name" : "durations"
+  "durations" : {
+    "9" : [ 1000 ]
+  },
+  "name" : "StepDurations"
 }

@@ -9,7 +9,6 @@ import org.musetest.core.context.initializers.ContextInitializerConfiguration
 import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.datacollection.DataCollector
 import org.musetest.core.events.StepEvent
-import org.musetest.core.step.StepConfiguration
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -21,7 +20,7 @@ private val logger = KotlinLogging.logger {}
  */
 class StepDurationCollector : MuseEventListener, DataCollector
 {
-	private val startTime = HashMap<StepConfiguration, Long>()
+	private val startTime = HashMap<Long, Long>()
 	private val data = StepDurations()
 	
 	override fun configure(configuration: ContextInitializerConfiguration?)
@@ -49,16 +48,18 @@ class StepDurationCollector : MuseEventListener, DataCollector
 		if (event.type == MuseEventType.StartStep)
 		{
 			val start = event as StepEvent
-			startTime.put(start.config, start.timestampNanos)
+			if (start.stepId != null)
+				startTime.put(start.stepId, start.timestampNanos)
 		}
 		else if (event.type == MuseEventType.EndStep)
 		{
 			val end = event as StepEvent
-			val started: Long? = startTime.remove(end.config)
-			if (started != null)
+			if (end.stepId != null)
 			{
-				val measurement = Measurement(end.timestampNanos - started)
-				data.durations.add(measurement)
+				val started: Long? = startTime.remove(end.stepId)
+				if (started != null)
+					recordDuration(end.stepId, end.timestampNanos - started)
+				
 			}
 		}
 		else if (event.type == MuseEventType.EndTest)
@@ -66,11 +67,22 @@ class StepDurationCollector : MuseEventListener, DataCollector
 			data.durations.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
 		}
 	}
-
-	companion object
+	
+	private fun recordDuration(stepid: Long, duration: Long)
+	{
+		var list = data.durations.get(stepid)
+		if (list == null)
 		{
-		val TYPE = "wpi.measurements.step-durations"
+			list = mutableListOf()
+			data.durations.put(stepid, list)
 		}
+		list.add(duration)
+	}
+	
+	companion object
+	{
+		val TYPE = "wpi.measurements.step-durations"
+	}
 	
 	// discovered by reflection
 	class StepDurationType : ContextInitializerType()
@@ -79,12 +91,12 @@ class StepDurationCollector : MuseEventListener, DataCollector
 		{
 			return StepDurationCollector.TYPE
 		}
-
+		
 		override fun getDisplayName(): String
 		{
 			return "Step Duration"
 		}
-
+		
 		override fun getShortDescription(): String
 		{
 			return "Measures and collects the durations of specified steps"
