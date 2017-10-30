@@ -85,6 +85,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	}
 	
 	// discovered by reflection
+	@Suppress("unused")
 	class StepDurationType : ContextInitializerType()
 	{
 		override fun getTypeId(): String
