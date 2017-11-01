@@ -1,5 +1,6 @@
 package com.webperformance.muse.measurements
 
+import com.webperformance.muse.measurements.stepduration.StepDurationCollector
 import org.junit.Assert
 import org.junit.Test
 import org.musetest.core.MuseEventType

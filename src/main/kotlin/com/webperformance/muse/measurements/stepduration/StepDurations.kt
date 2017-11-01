@@ -1,4 +1,4 @@
-package com.webperformance.muse.measurements
+package com.webperformance.muse.measurements.stepduration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.musetest.core.datacollection.TestResultData

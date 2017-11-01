@@ -1,4 +1,4 @@
-package com.webperformance.muse.measurements
+package com.webperformance.muse.measurements.stepduration
 
 import mu.KotlinLogging
 import org.musetest.core.MuseEvent
@@ -90,7 +90,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	{
 		override fun getTypeId(): String
 		{
-			return StepDurationCollector.TYPE
+			return TYPE
 		}
 		
 		override fun getDisplayName(): String
