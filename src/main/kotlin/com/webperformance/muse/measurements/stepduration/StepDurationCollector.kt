@@ -23,7 +23,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	private val startTime = HashMap<Long, Long>()
 	private val data = StepDurations()
 	
-	override fun configure(configuration: ContextInitializerConfiguration?)
+	override fun configure(configuration: ContextInitializerConfiguration)
 	{
 		// not expecting any configuration parameters yet
 	}
@@ -45,13 +45,13 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	override fun eventRaised(event: MuseEvent)
 	{
-		if (event.type == MuseEventType.StartStep)
+		if (StepEvent.START_TYPE.typeId == event.typeId)
 		{
 			val start = event as StepEvent
 			if (start.stepId != null)
 				startTime.put(start.stepId, start.timestampNanos)
 		}
-		else if (event.type == MuseEventType.EndStep)
+		else if (StepEvent.END_TYPE.typeId == event.typeId)
 		{
 			val end = event as StepEvent
 			if (end.stepId != null)

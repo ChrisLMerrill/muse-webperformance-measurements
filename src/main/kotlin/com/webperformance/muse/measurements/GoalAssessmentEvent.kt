@@ -1,9 +1,9 @@
 package com.webperformance.muse.measurements
 
 import org.musetest.core.MuseEvent
-import org.musetest.core.MuseEventType
+import org.musetest.core.events.EventType
 
 class GoalAssessmentEvent: MuseEvent
 {
-	constructor(type: MuseEventType?) : super(type)
+	constructor(type: EventType) : super(type)
 }
