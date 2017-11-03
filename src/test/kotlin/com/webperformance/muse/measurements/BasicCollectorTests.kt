@@ -20,8 +20,8 @@ class BasicCollectorTests
 		val step_config = StepConfiguration("mock-step")
 		step_config.setMetadataField(StepConfiguration.META_ID, 9L)
 		val context = MockStepExecutionContext()
-		val start_event = StepEvent(StepEvent.START_TYPE, step_config, context)
-		val end_event = MockStepEvent(StepEvent.END_TYPE, step_config, context)
+		val start_event = StepEvent(StepEvent.START_INSTANCE, step_config, context)
+		val end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
 		end_event.timestampNanos = start_event.timestampNanos + 1000
 
 		// create a collector

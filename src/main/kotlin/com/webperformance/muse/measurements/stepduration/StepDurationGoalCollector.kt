@@ -1,6 +1,5 @@
 package com.webperformance.muse.measurements.stepduration
 
-import com.webperformance.muse.measurements.GoalAssessmentEvent
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
@@ -9,7 +8,6 @@ import org.musetest.core.context.initializers.ContextInitializerConfiguration
 import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.events.EndTestEvent
 import org.musetest.core.events.StepEvent
-import org.musetest.core.step.StepExecutionStatus
 import org.musetest.core.values.ValueSourceConfiguration
 import java.util.*
 
@@ -18,9 +16,11 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
+class StepDurationGoalCollector : MuseEventListener, ContextInitializer
 {
 	private val startTime = HashMap<Long, Long>()
+	private val passes_map = HashMap<Long, Int>()
+	private val fails_map = HashMap<Long, Int>()
 	private var goal = 0L
 	private var goal_source_config = ValueSourceConfiguration.forValue(0)
 	private var test_context: MuseExecutionContext? = null
@@ -53,7 +53,7 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 	{
 		if (EndTestEvent.EndTestEventType.TYPE_ID == event.typeId)
 			test_context?.removeEventListener(this)
-		if (StepEvent.START_INSTANCE.typeId == event.typeId)
+		else if (StepEvent.START_INSTANCE.typeId == event.typeId)
 		{
 			val start = event as StepEvent
 			if (start.stepId != null)
@@ -62,22 +62,55 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 		else if (StepEvent.END_INSTANCE.typeId == event.typeId)
 		{
 			val end = event as StepEvent
-			if (end.result.status != StepExecutionStatus.INCOMPLETE && end.stepId != null)
+			if (end.stepId != null)
 			{
 				val started: Long? = startTime.remove(end.stepId)
 				if (started != null)
 				{
 					val duration = (end.timestampNanos - started) / 1000000  // convert to milliseconds
-					test_context?.raiseEvent(GoalAssessmentEvent(duration <= goal))
+					if (duration <= goal)
+					{
+						// increment the passes
+						var passes = 0
+						if (passes_map.containsKey(end.stepId))
+							passes = passes_map.get(end.stepId)!!
+						passes++
+						passes_map.put(end.stepId, passes)
+					}
+					else
+					{
+						// increment the fails
+						var fails = 0
+						if (fails_map.containsKey(end.stepId))
+							fails = fails_map.get(end.stepId)!!
+						fails++
+						fails_map.put(end.stepId, fails)
+					}
 				}
 				
 			}
 		}
 	}
 	
+	fun passes(stepId: Long?): Int
+	{
+		if (passes_map.containsKey(stepId))
+			return passes_map[stepId]!!
+		else
+			return 0
+	}
+
+	fun fails(stepId: Long?): Int?
+	{
+		if (fails_map.containsKey(stepId))
+			return fails_map[stepId]!!
+		else
+			return 0
+	}
+
 	companion object
 	{
-		val TYPE = "wpi.measurements.step-duration-goal-assessor"
+		val TYPE = "wpi.measurements.step-duration-goal-collector"
 	}
 	
 	// discovered by reflection
@@ -91,12 +124,12 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 		
 		override fun getDisplayName(): String
 		{
-			return "Step Duration Goal Assessor"
+			return "Step Duration Goal Collector"
 		}
 		
 		override fun getShortDescription(): String
 		{
-			return "Records events indicating the satisfaction of the step duration against the performance goal"
+			return "Collects counts of steps that pass and fail the duration goal(s)"
 		}
 	}
 }

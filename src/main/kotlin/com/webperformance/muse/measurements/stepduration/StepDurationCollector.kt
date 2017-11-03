@@ -45,13 +45,13 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	override fun eventRaised(event: MuseEvent)
 	{
-		if (StepEvent.START_TYPE.typeId == event.typeId)
+		if (StepEvent.START_INSTANCE.typeId == event.typeId)
 		{
 			val start = event as StepEvent
 			if (start.stepId != null)
 				startTime.put(start.stepId, start.timestampNanos)
 		}
-		else if (StepEvent.END_TYPE.typeId == event.typeId)
+		else if (StepEvent.END_INSTANCE.typeId == event.typeId)
 		{
 			val end = event as StepEvent
 			if (end.stepId != null)
