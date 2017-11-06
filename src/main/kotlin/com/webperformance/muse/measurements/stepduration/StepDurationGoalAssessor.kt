@@ -68,7 +68,14 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 				if (started != null)
 				{
 					val duration = (end.timestampNanos - started) / 1000000  // convert to milliseconds
-					test_context?.raiseEvent(GoalAssessmentEvent(duration <= goal))
+					var passed = true
+					var message = "Goal passed"
+					if (duration > goal)
+						{
+						passed = false
+						message = "Goal failed: duration ($duration) exceeded the goal ($goal)"
+						}
+					test_context?.raiseEvent(GoalAssessmentEvent(passed, message))
 				}
 				
 			}

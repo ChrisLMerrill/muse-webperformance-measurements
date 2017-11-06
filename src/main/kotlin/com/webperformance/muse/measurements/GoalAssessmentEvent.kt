@@ -3,14 +3,11 @@ package com.webperformance.muse.measurements
 import org.musetest.core.MuseEvent
 import org.musetest.core.events.EventType
 
-class GoalAssessmentEvent(var goalSatisfied: Boolean): MuseEvent(TYPE)
+class GoalAssessmentEvent(val goalSatisfied: Boolean, val message: String): MuseEvent(TYPE)
 {
 	override fun getDescription(): String
 	{
-		if (goalSatisfied)
-			return "Goal succeeded"
-		else
-			return "Goal failed"
+		return message
 	}
 	
 	class GoalAssessmentEventType : EventType()
