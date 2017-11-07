@@ -30,7 +30,6 @@ class GoalAssessmentEvent(val goalSatisfied: Boolean, val message: String): Muse
 	
 	companion object
 	{
-
 		val TYPE = GoalAssessmentEventType()
 	}
 	

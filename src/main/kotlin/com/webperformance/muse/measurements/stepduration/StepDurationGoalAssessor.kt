@@ -8,6 +8,7 @@ import org.musetest.core.context.ContextInitializer
 import org.musetest.core.context.initializers.ContextInitializerConfiguration
 import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.events.EndTestEvent
+import org.musetest.core.events.EventStatus
 import org.musetest.core.events.StepEvent
 import org.musetest.core.step.StepExecutionStatus
 import org.musetest.core.values.ValueSourceConfiguration
@@ -73,11 +74,13 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 					if (duration > goal)
 						{
 						passed = false
-						message = "Goal failed: duration ($duration) exceeded the goal ($goal)"
+						message = "Goal failed: step duration ($duration ms) exceeded the goal ($goal ms)"
 						}
-					test_context?.raiseEvent(GoalAssessmentEvent(passed, message))
+					val goal_event = GoalAssessmentEvent(passed, message)
+					if (!passed)
+						goal_event.status = EventStatus.Failure
+					test_context?.raiseEvent(goal_event)
 				}
-				
 			}
 		}
 	}
