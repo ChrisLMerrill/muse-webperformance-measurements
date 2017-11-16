@@ -1,12 +1,10 @@
 package com.webperformance.muse.measurements
 
 import com.webperformance.muse.measurements.stepduration.StepDurationGoalAssessor
-import com.webperformance.muse.measurements.stepduration.StepDurationGoalCollector
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.musetest.core.MuseEvent
-import org.musetest.core.context.ContextInitializer
 import org.musetest.core.context.initializers.ContextInitializerConfiguration
 import org.musetest.core.events.StepEvent
 import org.musetest.core.mocks.MockStepEvent
@@ -19,38 +17,13 @@ import org.musetest.core.values.ValueSourceConfiguration
 /**
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationGoalsTests
+class StepDurationGoalAssessorTests
 {
-	@Test
-	fun failGoalCollected()
-	{
-		// create a goal collector
-		val assessor = StepDurationGoalCollector()
-		runTest(2000L, assessor, 1000L)
-		
-		// check the data
-		Assert.assertEquals(0, assessor.passes(step_id))
-		Assert.assertEquals(1, assessor.fails(step_id))
-	}
-
-	@Test
-	fun passGoalCollected()
-	{
-		// create a collector
-		val assessor = StepDurationGoalCollector()
-		runTest(900L, assessor, 1000L)
-		
-		// check the data
-		Assert.assertEquals(1, assessor.passes(step_config.stepId))
-		Assert.assertEquals(0, assessor.fails(step_config.stepId))
-	}
-	
 	@Test
 	fun passGoalEvent()
 	{
 		// create an assessor
-		val assessor = StepDurationGoalAssessor()
-		runTest(900L, assessor, 1000L)
+		runTest(900L, 1000L)
 		
 		// check the received events
 		Assert.assertEquals(3, events_received.size)
@@ -69,8 +42,7 @@ class StepDurationGoalsTests
 	fun failGoalEvent()
 	{
 		// create an assessor
-		val assessor = StepDurationGoalAssessor()
-		runTest(1200L, assessor, 1000L)
+		runTest(1200L, 1000L)
 		
 		// check the received events
 		Assert.assertEquals(3, events_received.size)
@@ -89,8 +61,7 @@ class StepDurationGoalsTests
 	fun ignoreIncompleteStepEndEvents()
 	{
 		// create an assessor
-		val assessor = StepDurationGoalAssessor()
-		runTest(1200L, assessor, 1000L)
+		runTest(1200L, 1000L)
 		
 		context.raiseEvent(StepEvent(StepEvent.START_INSTANCE, step_config, context))
 		val incomplete_end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
@@ -102,22 +73,35 @@ class StepDurationGoalsTests
 		Assert.assertEquals(5, events_received.size)  // the incomplete_end_event should not trigger a goal event
 	}
 
-	private fun runTest(duration: Long, initializer: ContextInitializer, goal: Long)
+	private fun runTest(duration: Long, goal: Long)
 	{
-		val init_config = ContextInitializerConfiguration()
-		init_config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
-		initializer.configure(init_config)
-		initializer.initialize(context) // it should subscribe itself to the context
-		
-		start_event = StepEvent(StepEvent.START_INSTANCE, step_config, context)
-		end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
+		initialize(goal)
+		assessor.initialize(context) // it should subscribe itself to the context
+		runStep(duration, step_config)
+	}
+
+	private fun initialize(goal: Long)
+	{
+		val config = ContextInitializerConfiguration()
+		initialize(config, goal)
+	}
+	private fun initialize(config: ContextInitializerConfiguration, goal: Long)
+	{
+		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
+		assessor = StepDurationGoalAssessor()
+		assessor.configure(config)
+	}
+	
+	private fun runStep(duration: Long, step: StepConfiguration)
+	{
+		start_event = StepEvent(StepEvent.START_INSTANCE, step, context)
+		end_event = MockStepEvent(StepEvent.END_INSTANCE, step, context)
 		end_event.result = BasicStepExecutionResult(StepExecutionStatus.COMPLETE)
 		end_event.timestampNanos = start_event.timestampNanos + duration * 1000000 // 2 seconds in nanos
-
+		
 		// send it Step events
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
-		
 	}
 	
 	@Before
@@ -139,4 +123,5 @@ class StepDurationGoalsTests
 	private var step_config = StepConfiguration("mock-step")
 	private var start_event = StepEvent(StepEvent.START_INSTANCE, step_config, context)
 	private var end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
+	private var assessor = StepDurationGoalAssessor()
 }
