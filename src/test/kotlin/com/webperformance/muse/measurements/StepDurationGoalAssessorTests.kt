@@ -27,17 +27,24 @@ class StepDurationGoalAssessorTests
 		
 		// check the received events
 		Assert.assertEquals(3, events_received.size)
-		Assert.assertTrue(events_received[2] is GoalAssessmentEvent)
-		val goal_event = events_received[2]
-		when (goal_event)
-		{
-			is GoalAssessmentEvent ->
-			{
-				Assert.assertTrue(goal_event.goalSatisfied)
-			}
-		}
+		assertGoalAssessmentEventCount(1)
+		assertGoalEventStatus(events_received[2], true)
 	}
-
+	
+	private fun assertGoalAssessmentEventCount(count: Long)
+	{
+		var found = 0L
+		for (event in events_received)
+			when (event)
+			{
+				is GoalAssessmentEvent ->
+				{
+					found++
+				}
+			}
+		Assert.assertEquals("Wrong number of GoalAssessmentEvents found", count, found)
+	}
+	
 	@Test
 	fun failGoalEvent()
 	{
@@ -46,17 +53,43 @@ class StepDurationGoalAssessorTests
 		
 		// check the received events
 		Assert.assertEquals(3, events_received.size)
-		Assert.assertTrue(events_received[2] is GoalAssessmentEvent)
-		val goal_event = events_received[2]
-		when (goal_event)
+		assertGoalAssessmentEventCount(1)
+		assertGoalEventStatus(events_received[2], false)
+		assertGoalEventMessageContains(events_received[2], "1000")
+	}
+	
+	private fun assertGoalEventStatus(event: MuseEvent, satisfied: Boolean)
+	{
+		when (event)
 		{
 			is GoalAssessmentEvent ->
 			{
-				Assert.assertFalse(goal_event.goalSatisfied)
+				Assert.assertEquals(satisfied, event.goalSatisfied)
+			}
+			else ->
+			{
+				Assert.assertTrue("event is not a GoalAssessmentEvent", false)
 			}
 		}
+		
 	}
-
+	
+	private fun assertGoalEventMessageContains(event: MuseEvent, the_thing: String)
+	{
+		when (event)
+		{
+			is GoalAssessmentEvent ->
+			{
+				Assert.assertTrue("event message does not contain " + the_thing, event.message.contains(the_thing))
+			}
+			else ->
+			{
+				Assert.assertTrue("event is not a GoalAssessmentEvent", false)
+			}
+		}
+		
+	}
+	
 	@Test
 	fun ignoreIncompleteStepEndEvents()
 	{
@@ -71,20 +104,47 @@ class StepDurationGoalAssessorTests
 		
 		// check the received events
 		Assert.assertEquals(5, events_received.size)  // the incomplete_end_event should not trigger a goal event
+		assertGoalAssessmentEventCount(1)
 	}
 
+	@Test
+	fun ignoreUntaggedSteps()
+	{
+		val config = ContextInitializerConfiguration()
+		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
+		runTest(200L, 100L, config)
+		
+		// there should be no goal assessment event
+		assertGoalAssessmentEventCount(0)
+	}
+	
+	@Test
+	fun evaluateTaggedSteps()
+	{
+		val config = ContextInitializerConfiguration()
+		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
+// TODO this should use a tags API
+		step_config.setMetadataField("tags", "assess-goal")
+		runTest(200L, 80L, config)
+		
+		// there should be 1 goal assessment event (a fail)
+		assertGoalAssessmentEventCount(1)
+		assertGoalEventStatus(events_received[2], false)
+		assertGoalEventMessageContains(events_received[2], "80")
+	}
+	
 	private fun runTest(duration: Long, goal: Long)
 	{
-		initialize(goal)
+		runTest(duration, goal, ContextInitializerConfiguration())
+	}
+
+	private fun runTest(duration: Long, goal: Long, config: ContextInitializerConfiguration)
+	{
+		initialize(config, goal)
 		assessor.initialize(context) // it should subscribe itself to the context
 		runStep(duration, step_config)
 	}
 
-	private fun initialize(goal: Long)
-	{
-		val config = ContextInitializerConfiguration()
-		initialize(config, goal)
-	}
 	private fun initialize(config: ContextInitializerConfiguration, goal: Long)
 	{
 		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
@@ -102,6 +162,36 @@ class StepDurationGoalAssessorTests
 		// send it Step events
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
+	}
+	
+	@Test
+	fun useGoalConfiguredOnStep()
+	{
+		val config = ContextInitializerConfiguration()
+		config.addParameter("step-goal-name", ValueSourceConfiguration.forValue("duration-goal"))
+		step_config.setMetadataField("duration-goal", 100)
+		runTest(300L, 500L, config)
+		
+		// there should be 1 goal assessment event (a fail)
+		assertGoalAssessmentEventCount(1)
+		assertGoalEventStatus(events_received[2], false)
+		assertGoalEventMessageContains(events_received[2], "100")
+	}
+	
+	@Test
+	fun assessGoalEvenWhenCustomGoalNotConfiguredOnStep()
+	{
+		/*
+		 * If the assessor has been configured with a custom goal name, it should still evaluate
+		 * the steps without a custom goal using the default goal.
+		 */
+		val config = ContextInitializerConfiguration()
+		config.addParameter("step-goal-name", ValueSourceConfiguration.forValue("duration-goal"))
+		runTest(300L, 500L, config)
+		
+		// there should be 1 goal assessment event (a fail)
+		assertGoalAssessmentEventCount(1)
+		assertGoalEventStatus(events_received[2], true)
 	}
 	
 	@Before
