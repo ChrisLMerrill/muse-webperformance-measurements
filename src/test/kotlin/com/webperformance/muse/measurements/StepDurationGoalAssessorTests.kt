@@ -123,8 +123,7 @@ class StepDurationGoalAssessorTests
 	{
 		val config = ContextInitializerConfiguration()
 		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
-// TODO this should use a tags API
-		step_config.setMetadataField("tags", "assess-goal")
+		step_config.addTag("assess-goal")
 		runTest(200L, 80L, config)
 		
 		// there should be 1 goal assessment event (a fail)

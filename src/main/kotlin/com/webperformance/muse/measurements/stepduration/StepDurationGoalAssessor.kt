@@ -72,7 +72,7 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 		{
 			val start = event as StepEvent
 			val tag = step_tag
-			if (tag == null || tag == start.config.metadata["tags"])
+			if (tag == null || start.config.hasTag(tag))
 				if (start.stepId != null)
 					startTime.put(start.stepId, start.timestampNanos)
 		}
@@ -80,7 +80,7 @@ class StepDurationGoalAssessor : MuseEventListener, ContextInitializer
 		{
 			val end = event as StepEvent
 			val tag = step_tag
-			if (tag == null || tag == end.config.metadata["tags"])
+			if (tag == null || end.config.hasTag(tag))
 				if (end.result.status != StepExecutionStatus.INCOMPLETE && end.stepId != null)
 				{
 					val started: Long? = startTime.remove(end.stepId)
