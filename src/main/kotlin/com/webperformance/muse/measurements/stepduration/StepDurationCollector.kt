@@ -30,7 +30,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	override fun getType(): String
 	{
-		return TYPE
+		return TYPE_ID
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
@@ -81,7 +81,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	companion object
 	{
-		val TYPE = "wpi.measurements.step-durations"
+		val TYPE_ID = "wpi.measurements.step-durations"
 	}
 	
 	// discovered by reflection
@@ -90,17 +90,17 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	{
 		override fun getTypeId(): String
 		{
-			return TYPE
+			return TYPE_ID
 		}
 		
 		override fun getDisplayName(): String
 		{
-			return "Step Duration"
+			return "Step Duration collector"
 		}
 		
 		override fun getShortDescription(): String
 		{
-			return "Measures and collects the durations of specified steps"
+			return "Measures and collects the durations of executed steps"
 		}
 	}
 }
