@@ -22,7 +22,7 @@ class BasicCollectorTests
 		val context = MockStepExecutionContext()
 		val start_event = StepEvent(StepEvent.START_INSTANCE, step_config, context)
 		val end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
-		end_event.timestampNanos = start_event.timestampNanos + 1000
+		end_event.timestampNanos = start_event.timestampNanos + (1000 * 1000000)
 
 		// create a collector
 		val collector = StepDurationCollector()

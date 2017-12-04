@@ -3,11 +3,11 @@ package com.webperformance.muse.measurements.stepduration
 import mu.KotlinLogging
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
-import org.musetest.core.MuseEventType
 import org.musetest.core.MuseExecutionContext
 import org.musetest.core.context.initializers.ContextInitializerConfiguration
 import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.datacollection.DataCollector
+import org.musetest.core.events.EndTestEvent
 import org.musetest.core.events.StepEvent
 import java.util.*
 
@@ -58,11 +58,11 @@ class StepDurationCollector : MuseEventListener, DataCollector
 			{
 				val started: Long? = startTime.remove(end.stepId)
 				if (started != null)
-					recordDuration(end.stepId, end.timestampNanos - started)
+					recordDuration(end.stepId, (end.timestampNanos - started)/1000000)
 				
 			}
 		}
-		else if (event.type == MuseEventType.EndTest)
+		else if (event.typeId == EndTestEvent.EndTestEventType.TYPE_ID)
 		{
 			data.durations.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
 		}
@@ -95,7 +95,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 		
 		override fun getDisplayName(): String
 		{
-			return "Step Duration collector"
+			return "Step Duration Collector"
 		}
 		
 		override fun getShortDescription(): String
