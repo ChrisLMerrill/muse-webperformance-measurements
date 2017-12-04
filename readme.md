@@ -44,7 +44,7 @@ none
 
 ### Example in MuseIDE
 
-![](images/readme-stepdurationcollector-museide.png)
+![](readme-images/readme-stepdurationcollector-museide.png)
 
 # Step Duration Goal Assessor
 
@@ -98,12 +98,12 @@ In this example:
 * only steps tagged with *assess-goal* will be evaluated
 * if the step has a *duration-goal* attribute, then the value of that attribute will be used for the goal, rather than the 200ms default
 
-![](images/readme-stepdurationgoalassessor-museide.png)
+![](readme-images/readme-stepdurationgoalassessor-museide.png)
 
 Here is an example of the step configured with:
 
 * the *assess-goal* tag to indicate this step should be assessed for performance
 * a *duration-goal* attribute to use a goal of 100ms for this step instead of the default
 
-![](images/readme-stepdurationgoalassessor-museide-stepconfig.png)
+![](readme-images/readme-stepdurationgoalassessor-museide-stepconfig.png)
 
