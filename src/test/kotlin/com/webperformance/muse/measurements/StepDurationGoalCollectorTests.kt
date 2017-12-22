@@ -5,14 +5,14 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.musetest.core.MuseEvent
-import org.musetest.core.context.ContextInitializer
-import org.musetest.core.context.initializers.ContextInitializerConfiguration
 import org.musetest.core.events.StepEvent
 import org.musetest.core.mocks.MockStepEvent
 import org.musetest.core.mocks.MockStepExecutionContext
 import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
 import org.musetest.core.step.StepExecutionStatus
+import org.musetest.core.test.plugins.TestPlugin
+import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.values.ValueSourceConfiguration
 
 /**
@@ -44,9 +44,9 @@ class StepDurationGoalCollectorTests
 		Assert.assertEquals(0, collector.fails(step_config.stepId))
 	}
 	
-	private fun runTest(duration: Long, initializer: ContextInitializer, goal: Long)
+	private fun runTest(duration: Long, initializer: TestPlugin, goal: Long)
 	{
-		val config = ContextInitializerConfiguration()
+		val config = TestPluginConfiguration()
 		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
 		initializer.configure(config)
 		initializer.initialize(context) // it should subscribe itself to the context

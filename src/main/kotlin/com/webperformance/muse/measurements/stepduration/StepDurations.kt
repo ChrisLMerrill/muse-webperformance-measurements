@@ -8,8 +8,8 @@ class StepDurations : TestResultData
 {
 	val durations: MutableMap<Long, MutableList<Long>> = mutableMapOf()
 	
-	private var name: String? = "StepDurations"
-	override fun getName(): String?
+	private var name: String = "StepDurations"
+	override fun getName(): String
 	{
 		return name
 	}
@@ -21,7 +21,7 @@ class StepDurations : TestResultData
 
 	override fun suggestFilename(): String
 	{
-		return name!! + ".json"
+		return name + ".json"
 	}
 
 	override fun write(outstream: OutputStream)

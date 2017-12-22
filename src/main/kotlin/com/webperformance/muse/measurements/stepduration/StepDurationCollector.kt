@@ -4,11 +4,11 @@ import mu.KotlinLogging
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
-import org.musetest.core.context.initializers.ContextInitializerConfiguration
-import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.datacollection.DataCollector
 import org.musetest.core.events.EndTestEvent
 import org.musetest.core.events.StepEvent
+import org.musetest.core.test.plugins.TestPluginConfiguration
+import org.musetest.core.test.plugins.TestPluginType
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -22,8 +22,9 @@ class StepDurationCollector : MuseEventListener, DataCollector
 {
 	private val startTime = HashMap<Long, Long>()
 	private val data = StepDurations()
+	private var test_context : MuseExecutionContext? = null
 	
-	override fun configure(configuration: ContextInitializerConfiguration)
+	override fun configure(configuration: TestPluginConfiguration)
 	{
 		// not expecting any configuration parameters yet
 	}
@@ -35,6 +36,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
+		test_context = context
 		context.addEventListener(this)
 	}
 	
@@ -65,6 +67,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 		else if (event.typeId == EndTestEvent.EndTestEventType.TYPE_ID)
 		{
 			data.durations.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
+			test_context?.removeEventListener(this)
 		}
 	}
 	
@@ -86,7 +89,7 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	
 	// discovered by reflection
 	@Suppress("unused")
-	class StepDurationType : ContextInitializerType()
+	class StepDurationType : TestPluginType()
 	{
 		override fun getTypeId(): String
 		{

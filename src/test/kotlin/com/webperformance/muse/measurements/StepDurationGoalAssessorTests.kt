@@ -5,7 +5,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.musetest.core.MuseEvent
-import org.musetest.core.context.initializers.ContextInitializerConfiguration
+import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.events.StepEvent
 import org.musetest.core.mocks.MockStepEvent
 import org.musetest.core.mocks.MockStepExecutionContext
@@ -110,7 +110,7 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun ignoreUntaggedSteps()
 	{
-		val config = ContextInitializerConfiguration()
+		val config = TestPluginConfiguration()
 		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
 		runTest(200L, 100L, config)
 		
@@ -121,7 +121,7 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun evaluateTaggedSteps()
 	{
-		val config = ContextInitializerConfiguration()
+		val config = TestPluginConfiguration()
 		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
 		step_config.addTag("assess-goal")
 		runTest(200L, 80L, config)
@@ -134,17 +134,17 @@ class StepDurationGoalAssessorTests
 	
 	private fun runTest(duration: Long, goal: Long)
 	{
-		runTest(duration, goal, ContextInitializerConfiguration())
+		runTest(duration, goal, TestPluginConfiguration())
 	}
 
-	private fun runTest(duration: Long, goal: Long, config: ContextInitializerConfiguration)
+	private fun runTest(duration: Long, goal: Long, config: TestPluginConfiguration)
 	{
 		initialize(config, goal)
 		assessor.initialize(context) // it should subscribe itself to the context
 		runStep(duration, step_config)
 	}
 
-	private fun initialize(config: ContextInitializerConfiguration, goal: Long)
+	private fun initialize(config: TestPluginConfiguration, goal: Long)
 	{
 		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
 		assessor = StepDurationGoalAssessor()
@@ -166,7 +166,7 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun useGoalConfiguredOnStep()
 	{
-		val config = ContextInitializerConfiguration()
+		val config = TestPluginConfiguration()
 		config.addParameter("step-goal-name", ValueSourceConfiguration.forValue("duration-goal"))
 		step_config.setMetadataField("duration-goal", 100)
 		runTest(300L, 500L, config)
@@ -184,7 +184,7 @@ class StepDurationGoalAssessorTests
 		 * If the assessor has been configured with a custom goal name, it should still evaluate
 		 * the steps without a custom goal using the default goal.
 		 */
-		val config = ContextInitializerConfiguration()
+		val config = TestPluginConfiguration()
 		config.addParameter("step-goal-name", ValueSourceConfiguration.forValue("duration-goal"))
 		runTest(300L, 500L, config)
 		

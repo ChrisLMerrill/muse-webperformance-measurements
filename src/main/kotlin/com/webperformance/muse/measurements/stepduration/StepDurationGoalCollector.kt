@@ -3,11 +3,11 @@ package com.webperformance.muse.measurements.stepduration
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
-import org.musetest.core.context.ContextInitializer
-import org.musetest.core.context.initializers.ContextInitializerConfiguration
-import org.musetest.core.context.initializers.ContextInitializerType
 import org.musetest.core.events.EndTestEvent
 import org.musetest.core.events.StepEvent
+import org.musetest.core.test.plugins.TestPlugin
+import org.musetest.core.test.plugins.TestPluginConfiguration
+import org.musetest.core.test.plugins.TestPluginType
 import org.musetest.core.values.ValueSourceConfiguration
 import java.util.*
 
@@ -16,7 +16,7 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationGoalCollector : MuseEventListener, ContextInitializer
+class StepDurationGoalCollector : MuseEventListener, TestPlugin
 {
 	private val startTime = HashMap<Long, Long>()
 	private val passes_map = HashMap<Long, Int>()
@@ -25,7 +25,7 @@ class StepDurationGoalCollector : MuseEventListener, ContextInitializer
 	private var goal_source_config = ValueSourceConfiguration.forValue(0)
 	private var test_context: MuseExecutionContext? = null
 	
-	override fun configure(configuration: ContextInitializerConfiguration)
+	override fun configure(configuration: TestPluginConfiguration)
 	{
 		if (configuration.parameters != null && configuration.parameters.containsKey("goal"))
 			goal_source_config = configuration.parameters["goal"]
@@ -115,7 +115,7 @@ class StepDurationGoalCollector : MuseEventListener, ContextInitializer
 	
 	// discovered by reflection
 	@Suppress("unused")
-	class StepDurationGoalAssessorType : ContextInitializerType()
+	class StepDurationGoalAssessorType : TestPluginType()
 	{
 		override fun getTypeId(): String
 		{
