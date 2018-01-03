@@ -9,6 +9,7 @@ import org.musetest.core.events.EndTestEvent
 import org.musetest.core.events.StepEvent
 import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.test.plugins.TestPluginType
+import org.musetest.core.values.ValueSourceConfiguration
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -22,11 +23,14 @@ class StepDurationCollector : MuseEventListener, DataCollector
 {
 	private val startTime = HashMap<Long, Long>()
 	private val data = StepDurations()
+	private var step_tag: String? = null
+	private var step_tag_source_config: ValueSourceConfiguration? = null
 	private var test_context : MuseExecutionContext? = null
 	
 	override fun configure(configuration: TestPluginConfiguration)
 	{
-		// not expecting any configuration parameters yet
+		if (configuration.parameters != null && configuration.parameters.containsKey("step-has-tag"))
+			step_tag_source_config = configuration.parameters["step-has-tag"]
 	}
 	
 	override fun getType(): String
@@ -38,6 +42,11 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	{
 		test_context = context
 		context.addEventListener(this)
+
+		step_tag_source_config?.let { config ->
+			val tag_source = config.createSource(context.project)
+			step_tag = tag_source.resolveValue(context).toString()
+		}
 	}
 	
 	override fun getData(): StepDurations
@@ -50,8 +59,10 @@ class StepDurationCollector : MuseEventListener, DataCollector
 		if (StepEvent.START_INSTANCE.typeId == event.typeId)
 		{
 			val start = event as StepEvent
-			if (start.stepId != null)
-				startTime.put(start.stepId, start.timestampNanos)
+			val tag = step_tag
+			if (tag == null || start.config.hasTag(tag))
+				if (start.stepId != null)
+					startTime.put(start.stepId, start.timestampNanos)
 		}
 		else if (StepEvent.END_INSTANCE.typeId == event.typeId)
 		{
