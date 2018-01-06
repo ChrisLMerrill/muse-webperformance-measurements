@@ -71,26 +71,14 @@ class StepDurationCollector : MuseEventListener, DataCollector
 			{
 				val started: Long? = startTime.remove(end.stepId)
 				if (started != null)
-					recordDuration(end.stepId, (end.timestampNanos - started)/1000000)
+					data.record(end.stepId, (end.timestampNanos - started)/1000000)
 				
 			}
 		}
 		else if (event.typeId == EndTestEvent.EndTestEventType.TYPE_ID)
 		{
-			data.durations.iterator().forEach(operation = { measurement -> logger.error("measured: ${measurement.value}") })
 			test_context?.removeEventListener(this)
 		}
-	}
-	
-	private fun recordDuration(stepid: Long, duration: Long)
-	{
-		var list = data.durations.get(stepid)
-		if (list == null)
-		{
-			list = mutableListOf()
-			data.durations.put(stepid, list)
-		}
-		list.add(duration)
 	}
 	
 	companion object

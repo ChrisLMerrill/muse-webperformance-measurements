@@ -1,6 +1,6 @@
-package com.webperformance.muse.measurements
+package com.webperformance.muse.measurements.stepduration
 
-import com.webperformance.muse.measurements.stepduration.StepDurationGoalAssessor
+import com.webperformance.muse.measurements.GoalAssessmentEvent
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

@@ -1,4 +1,4 @@
-package com.webperformance.muse.measurements
+package com.webperformance.muse.measurements.stepduration
 
 import com.webperformance.muse.measurements.stepduration.StepDurationGoalCollector
 import org.junit.Assert
