@@ -1,13 +1,16 @@
 package com.webperformance.muse.measurements.stepduration
 
-import com.webperformance.muse.measurements.GoalAssessmentEvent
+import com.webperformance.muse.measurements.GoalAssessmentEventType
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
-import org.musetest.core.events.EndTestEvent
-import org.musetest.core.events.EventStatus
-import org.musetest.core.events.StepEvent
-import org.musetest.core.step.StepExecutionStatus
+import org.musetest.core.context.SteppedTestExecutionContext
+import org.musetest.core.datacollection.DataCollector
+import org.musetest.core.events.EndStepEventType
+import org.musetest.core.events.EndTestEventType
+import org.musetest.core.events.StartStepEventType
+import org.musetest.core.events.StepEventType
+import org.musetest.core.step.StepConfiguration
 import org.musetest.core.test.plugins.TestPlugin
 import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.test.plugins.TestPluginType
@@ -19,7 +22,7 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationGoalAssessor : MuseEventListener, TestPlugin
+class StepDurationGoalAssessor : MuseEventListener, TestPlugin, DataCollector
 {
 	private val startTime = HashMap<Long, Long>()
 	private var goal = 0L
@@ -28,7 +31,9 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin
 	private var step_tag_source_config: ValueSourceConfiguration? = null
 	private var step_goal_name: String? = null
 	private var step_goal_name_source_config: ValueSourceConfiguration? = null
-	private var test_context: MuseExecutionContext? = null
+	private var collect_goals_config: ValueSourceConfiguration? = null
+	private var stepped_context: SteppedTestExecutionContext? = null
+	private var goals: StepDurationGoals? = null
 	
 	override fun configure(configuration: TestPluginConfiguration)
 	{
@@ -38,13 +43,16 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin
 			step_tag_source_config = configuration.parameters["step-has-tag"]
 		if (configuration.parameters != null && configuration.parameters.containsKey("step-goal-name"))
 			step_goal_name_source_config = configuration.parameters["step-goal-name"]
+		if (configuration.parameters != null && configuration.parameters.containsKey("collect-goals"))
+			collect_goals_config = configuration.parameters["collect-goals"]
 	}
 	
 	override fun getType(): String = TYPE
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
-		test_context = context
+		stepped_context = MuseExecutionContext.findAncestor(context, SteppedTestExecutionContext::class.java)
+		// TODO throw exception if not found
 		context.addEventListener(this)
 		
 		val source = goal_source_config.createSource(context.project)
@@ -62,35 +70,44 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin
 			val name_source = config.createSource(context.project)
 			step_goal_name = name_source.resolveValue(context).toString()
 		}
+		collect_goals_config?.let { config ->
+			val collect_source = config.createSource(context.project)
+			val collect = collect_source.resolveValue(context)
+			if (collect is Boolean && collect)
+				goals = StepDurationGoals()
+		}
 	}
 	
 	override fun eventRaised(event: MuseEvent)
 	{
-		if (EndTestEvent.EndTestEventType.TYPE_ID == event.typeId)
-			test_context?.removeEventListener(this)
-		if (StepEvent.START_INSTANCE.typeId == event.typeId)
+		if (EndTestEventType.TYPE_ID == event.typeId)
+			stepped_context?.removeEventListener(this)
+		else if (StartStepEventType.TYPE_ID == event.typeId)
 		{
-			val start = event as StepEvent
-			val tag = step_tag
-			if (tag == null || start.config.hasTag(tag))
-				if (start.stepId != null)
-					startTime.put(start.stepId, start.timestampNanos)
+			val step = findStep(event)
+			if (step != null)
+			{
+				val step_id = step.stepId
+				if (step_tag == null || step.hasTag(step_tag))
+					startTime.put(step_id, event.timestampNanos)
+			}
 		}
-		else if (StepEvent.END_INSTANCE.typeId == event.typeId)
+		else if (EndStepEventType.TYPE_ID == event.typeId)
 		{
-			val end = event as StepEvent
-			val tag = step_tag
-			if (tag == null || end.config.hasTag(tag))
-				if (end.result.status != StepExecutionStatus.INCOMPLETE && end.stepId != null)
+			if (!event.hasTag(StepEventType.INCOMPLETE))
+			{
+				val step = findStep(event)
+				if (step != null)
 				{
-					val started: Long? = startTime.remove(end.stepId)
+					val step_id = StepEventType.getStepId(event)
+					val started: Long? = startTime.remove(step_id)
 					if (started != null)
 					{
 						var duration_goal = goal
-						if (step_goal_name != null && end.config.getMetadataField(step_goal_name) != null)
-							duration_goal = end.config.getMetadataField(step_goal_name).toString().toLong()
+						if (step_goal_name != null && step.getMetadataField(step_goal_name) != null)
+							duration_goal = step.getMetadataField(step_goal_name).toString().toLong()
 						
-						val duration = (end.timestampNanos - started) / 1000000  // convert to milliseconds
+						val duration = (event.timestampNanos - started) / 1000000  // convert to milliseconds
 						var passed = true
 						var message = "Goal passed"
 						if (duration > duration_goal)
@@ -98,13 +115,23 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin
 							passed = false
 							message = "Goal failed: step duration ($duration ms) exceeded the goal ($duration_goal ms)"
 						}
-						val goal_event = GoalAssessmentEvent(passed, message)
-						if (!passed)
-							goal_event.status = EventStatus.Failure
-						test_context?.raiseEvent(goal_event)
+						
+						goals?.record(step_id, passed)
+						stepped_context?.raiseEvent(GoalAssessmentEventType.create(passed, message))
 					}
 				}
+			}
 		}
+	}
+	
+	private fun findStep(event: MuseEvent): StepConfiguration?
+	{
+		return stepped_context?.stepLocator?.findStep(StepEventType.getStepId(event))
+	}
+	
+	override fun getData(): StepDurationGoals?
+	{
+		return goals
 	}
 	
 	companion object

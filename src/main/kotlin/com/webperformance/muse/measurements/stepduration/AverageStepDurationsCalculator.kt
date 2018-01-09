@@ -13,6 +13,7 @@ fun main(args: Array<String>)
 	
 	val root = File(".")
 	val files = root.listFiles()
+	var processed = 0
 	for (file in files)
 		if (file.name.startsWith(prefix) && file.isDirectory)
 		{
@@ -21,13 +22,18 @@ fun main(args: Array<String>)
 			{
 				val durations = mapper.readValue(durations_file, StepDurations::class.java)
 				calculator.add(durations)
+				processed++
 			}
 		}
 	
 	val outstream = FileOutputStream(File(outfile_name))
 	calculator.getAverages().write(outstream)
 	outstream.close()
+	
+	println("$processed files processed")
+	println("averages calculated for ${calculator.getAverages().getStepIds().size} steps")
 }
+
 class AverageStepDurationsCalculator
 {
 	private val counts = HashMap<Long, Long>()
@@ -46,11 +52,7 @@ class AverageStepDurationsCalculator
 		
 		var total = totals.get(stepid) ?: 0
 		for (duration in durations)
-		{
-			if (stepid == 90477986185318)
-				println("duration is " + duration)
 			total += duration
-		}
 		
 		counts.put(stepid, count)
 		totals.put(stepid, total)
@@ -68,5 +70,4 @@ class AverageStepDurationsCalculator
 		}
 		return averages
 	}
-	
 }

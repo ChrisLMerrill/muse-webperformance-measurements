@@ -72,5 +72,4 @@ class AverageStepDurationsCalculatorTests
 		Assert.assertEquals(150, averages.getDurations(1)[0])
 		Assert.assertEquals(300, averages.getDurations(2)[0])
 	}
-	
 }

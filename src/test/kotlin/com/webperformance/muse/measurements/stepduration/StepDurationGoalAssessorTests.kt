@@ -1,17 +1,18 @@
 package com.webperformance.muse.measurements.stepduration
 
-import com.webperformance.muse.measurements.GoalAssessmentEvent
+import com.webperformance.muse.measurements.GoalAssessmentEventType
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.musetest.core.MuseEvent
-import org.musetest.core.test.plugins.TestPluginConfiguration
-import org.musetest.core.events.StepEvent
-import org.musetest.core.mocks.MockStepEvent
-import org.musetest.core.mocks.MockStepExecutionContext
+import org.musetest.core.events.EndStepEventType
+import org.musetest.core.events.StartStepEventType
+import org.musetest.core.mocks.MockSteppedTestExecutionContext
 import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
 import org.musetest.core.step.StepExecutionStatus
+import org.musetest.core.steptest.SteppedTest
+import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.values.ValueSourceConfiguration
 
 /**
@@ -35,13 +36,8 @@ class StepDurationGoalAssessorTests
 	{
 		var found = 0L
 		for (event in events_received)
-			when (event)
-			{
-				is GoalAssessmentEvent ->
-				{
-					found++
-				}
-			}
+			if (event.typeId.equals(GoalAssessmentEventType.TYPE_ID))
+				found++
 		Assert.assertEquals("Wrong number of GoalAssessmentEvents found", count, found)
 	}
 	
@@ -60,34 +56,18 @@ class StepDurationGoalAssessorTests
 	
 	private fun assertGoalEventStatus(event: MuseEvent, satisfied: Boolean)
 	{
-		when (event)
-		{
-			is GoalAssessmentEvent ->
-			{
-				Assert.assertEquals(satisfied, event.goalSatisfied)
-			}
-			else ->
-			{
-				Assert.assertTrue("event is not a GoalAssessmentEvent", false)
-			}
-		}
-		
+		if (event.typeId.equals(GoalAssessmentEventType.TYPE_ID))
+			Assert.assertEquals(satisfied, !event.hasTag(MuseEvent.FAILURE))
+		else
+			Assert.assertTrue("event is not a GoalAssessmentEvent", false)
 	}
 	
 	private fun assertGoalEventMessageContains(event: MuseEvent, the_thing: String)
 	{
-		when (event)
-		{
-			is GoalAssessmentEvent ->
-			{
-				Assert.assertTrue("event message does not contain " + the_thing, event.message.contains(the_thing))
-			}
-			else ->
-			{
-				Assert.assertTrue("event is not a GoalAssessmentEvent", false)
-			}
-		}
-		
+		if (event.typeId.equals(GoalAssessmentEventType.TYPE_ID))
+			Assert.assertTrue("event message does not contain " + the_thing, GoalAssessmentEventType().getDescription(event).contains(the_thing))
+		else
+			Assert.assertTrue("event is not a GoalAssessmentEvent", false)
 	}
 	
 	@Test
@@ -96,9 +76,8 @@ class StepDurationGoalAssessorTests
 		// create an assessor
 		runTest(1200L, 1000L)
 		
-		context.raiseEvent(StepEvent(StepEvent.START_INSTANCE, step_config, context))
-		val incomplete_end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
-		incomplete_end_event.result = BasicStepExecutionResult(StepExecutionStatus.INCOMPLETE)
+		context.raiseEvent(StartStepEventType.create(step_config, context))
+		val incomplete_end_event = EndStepEventType.create(step_config, context, BasicStepExecutionResult(StepExecutionStatus.INCOMPLETE))
 		incomplete_end_event.timestampNanos = start_event.timestampNanos + 5000L * 1000000L // 2 seconds in nanos
 		context.raiseEvent(incomplete_end_event)
 		
@@ -141,21 +120,17 @@ class StepDurationGoalAssessorTests
 	{
 		initialize(config, goal)
 		assessor.initialize(context) // it should subscribe itself to the context
-		runStep(duration, step_config)
+		runStep(duration)
 	}
 
 	private fun initialize(config: TestPluginConfiguration, goal: Long)
 	{
 		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
-		assessor = StepDurationGoalAssessor()
 		assessor.configure(config)
 	}
 	
-	private fun runStep(duration: Long, step: StepConfiguration)
+	private fun runStep(duration: Long)
 	{
-		start_event = StepEvent(StepEvent.START_INSTANCE, step, context)
-		end_event = MockStepEvent(StepEvent.END_INSTANCE, step, context)
-		end_event.result = BasicStepExecutionResult(StepExecutionStatus.COMPLETE)
 		end_event.timestampNanos = start_event.timestampNanos + duration * 1000000 // 2 seconds in nanos
 		
 		// send it Step events
@@ -196,21 +171,24 @@ class StepDurationGoalAssessorTests
 	@Before
 	fun setup()
 	{
-		step_id = 9L
 		step_config = StepConfiguration("mock-step")
 		step_config.setMetadataField(StepConfiguration.META_ID, step_id)
-		events_received = mutableListOf()
-		context = MockStepExecutionContext()
-
+		step_test = SteppedTest(step_config)
+		step_test.id = "stepper"
+		context = MockSteppedTestExecutionContext(step_test)
+		start_event = StartStepEventType.create(step_config, context)
+		end_event = EndStepEventType.create(step_config, context, BasicStepExecutionResult(StepExecutionStatus.COMPLETE))
+		
 		// subscribe to events
 		context.addEventListener { event -> events_received.add(event) }
 	}
 	
-	private var step_id = 9L
-	private var events_received = mutableListOf<MuseEvent>()
-	private var context = MockStepExecutionContext()
-	private var step_config = StepConfiguration("mock-step")
-	private var start_event = StepEvent(StepEvent.START_INSTANCE, step_config, context)
-	private var end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
-	private var assessor = StepDurationGoalAssessor()
+	private val step_id = 9L
+	private val events_received = mutableListOf<MuseEvent>()
+	private lateinit var step_config : StepConfiguration
+	private lateinit var step_test : SteppedTest
+	private lateinit var context : MockSteppedTestExecutionContext
+	private lateinit var start_event : MuseEvent
+	private lateinit var end_event : MuseEvent
+	private val assessor = StepDurationGoalAssessor()
 }

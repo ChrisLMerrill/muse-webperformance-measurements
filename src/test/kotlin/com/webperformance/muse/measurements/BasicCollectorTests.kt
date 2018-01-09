@@ -3,10 +3,13 @@ package com.webperformance.muse.measurements
 import com.webperformance.muse.measurements.stepduration.StepDurationCollector
 import org.junit.Assert
 import org.junit.Test
-import org.musetest.core.events.StepEvent
-import org.musetest.core.mocks.MockStepEvent
-import org.musetest.core.mocks.MockStepExecutionContext
+import org.musetest.core.events.EndStepEventType
+import org.musetest.core.events.StartStepEventType
+import org.musetest.core.mocks.MockSteppedTestExecutionContext
+import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
+import org.musetest.core.step.StepExecutionStatus
+import org.musetest.core.steptest.SteppedTest
 import java.io.ByteArrayOutputStream
 
 /**
@@ -19,9 +22,10 @@ class BasicCollectorTests
 	{
 		val step_config = StepConfiguration("mock-step")
 		step_config.setMetadataField(StepConfiguration.META_ID, 9L)
-		val context = MockStepExecutionContext()
-		val start_event = StepEvent(StepEvent.START_INSTANCE, step_config, context)
-		val end_event = MockStepEvent(StepEvent.END_INSTANCE, step_config, context)
+		val step_test = SteppedTest(step_config)
+		val context = MockSteppedTestExecutionContext(step_test)
+		val start_event = StartStepEventType.create(step_config, context)
+		val end_event = EndStepEventType.create(step_config, context, BasicStepExecutionResult(StepExecutionStatus.COMPLETE))
 		end_event.timestampNanos = start_event.timestampNanos + (1000 * 1000000)
 
 		// create a collector
