@@ -119,6 +119,8 @@ class StepDurationGoalAssessor(configuration: GenericResourceConfiguration) : Ba
 				}
 			}
 		}
+		else if (EndTestEventType.TYPE_ID == event.typeId)
+			stepped_context?.removeEventListener(this)
 	}
 	
 	private fun findStep(event: MuseEvent): StepConfiguration?
@@ -135,15 +137,4 @@ class StepDurationGoalAssessor(configuration: GenericResourceConfiguration) : Ba
 	{
 		val TYPE = "wpi.measurements.step-duration-goal-assessor"
 	}
-	
-/*
-	// discovered by reflection
-	@Suppress("unused")
-	class StepDurationGoalAssessorType : TestPluginType()
-	{
-		override fun getTypeId(): String = TYPE
-		override fun getDisplayName(): String = "Step Duration Goal Assessor"
-		override fun getShortDescription(): String = "Records events indicating the satisfaction of the step duration against the performance goal"
-	}
-*/
 }

@@ -84,6 +84,8 @@ LOG.error("Collecting for steps with tag ${step_tag}")
 						data.record(step_id, (event.timestampNanos - started)/1000000)
 				}
 			}
+		else if (EndTestEventType.TYPE_ID == event.typeId)
+			test_context.removeEventListener(this)
 		}
 	}
 	
@@ -92,10 +94,5 @@ LOG.error("Collecting for steps with tag ${step_tag}")
 		return stepped_context?.stepLocator?.findStep(StepEventType.getStepId(event))
 	}
 	
-	companion object
-	{
-		val TYPE_ID = "wpi.measurements.step-durations"
-	}
-
 	private val LOG = LoggerFactory.getLogger(StepDurationCollector::class.java)
 }
