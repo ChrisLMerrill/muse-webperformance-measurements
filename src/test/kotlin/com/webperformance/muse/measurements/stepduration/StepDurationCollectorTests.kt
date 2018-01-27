@@ -1,6 +1,5 @@
-package com.webperformance.muse.measurements
+package com.webperformance.muse.measurements.stepduration
 
-import com.webperformance.muse.measurements.stepduration.StepDurationCollector
 import org.junit.Assert
 import org.junit.Test
 import org.musetest.core.events.EndStepEventType
@@ -15,7 +14,7 @@ import java.io.ByteArrayOutputStream
 /**
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class BasicCollectorTests
+class StepDurationCollectorTests
 {
 	@Test
 	fun collectSingleStepDuration()
@@ -29,7 +28,7 @@ class BasicCollectorTests
 		end_event.timestampNanos = start_event.timestampNanos + (1000 * 1000000)
 
 		// create a collector
-		val collector = StepDurationCollector()
+		val collector = StepDurationCollector(StepDurationCollectorConfiguration())
 		collector.initialize(context) // it should subscribe itself to the context
 		
 		// send it Step events
@@ -47,6 +46,6 @@ class BasicCollectorTests
 		// Save the data and compare to the expected output
 		val outstream = ByteArrayOutputStream()
 		test_data.write(outstream)
-		Assert.assertEquals(this.javaClass.getResource("compareto/durations.txt").readText(), outstream.toString())
+		Assert.assertEquals(this.javaClass.getResource("durations.txt").readText(), outstream.toString())
 	}
 }

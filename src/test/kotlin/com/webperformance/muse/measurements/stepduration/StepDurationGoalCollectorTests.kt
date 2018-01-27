@@ -11,8 +11,6 @@ import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
 import org.musetest.core.step.StepExecutionStatus
 import org.musetest.core.steptest.SteppedTest
-import org.musetest.core.test.plugins.TestPlugin
-import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.values.ValueSourceConfiguration
 
 /**
@@ -23,9 +21,7 @@ class StepDurationGoalCollectorTests
 	@Test
 	fun failGoalCollected()
 	{
-		// create a goal collector
-		val collector = StepDurationGoalAssessor()
-		runTest(2000L, collector, 1000L)
+		runStep(2000L)
 		
 		// check the data
 		Assert.assertEquals(0L, collector.data?.getPasses(step_id))
@@ -35,25 +31,13 @@ class StepDurationGoalCollectorTests
 	@Test
 	fun passGoalCollected()
 	{
-		// create a collector
-		val collector = StepDurationGoalAssessor()
-		runTest(900L, collector, 1000L)
+		runStep(900L)
 		
 		// check the data
 		Assert.assertEquals(1L, collector.data?.getPasses(step_id))
 		Assert.assertEquals(0L, collector.data?.getFails(step_id))
 	}
 	
-	private fun runTest(duration: Long, initializer: TestPlugin, goal: Long)
-	{
-		val config = TestPluginConfiguration()
-		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
-		config.addParameter("collect-goals", ValueSourceConfiguration.forValue(true))
-		initializer.configure(config)
-		initializer.initialize(context) // it should subscribe itself to the context
-		runStep(duration)
-	}
-
 	private fun runStep(duration: Long)
 	{
 		end_event.timestampNanos = start_event.timestampNanos + duration * 1000000 // 2 seconds in nanos
@@ -76,6 +60,13 @@ class StepDurationGoalCollectorTests
 		
 		// subscribe to events
 		context.addEventListener { event -> events_received.add(event) }
+
+		config = StepDurationGoalAssessorConfiguration.StepDurationGoalAssessorType().create()
+		config.parameters().replaceSource(StepDurationGoalAssessorConfiguration.GOAL_PARAM, ValueSourceConfiguration.forValue(1000L))
+		config.parameters().removeSource(StepDurationGoalAssessorConfiguration.STEP_TAG_PARAM)
+		config.parameters().addSource(StepDurationGoalAssessorConfiguration.COLLECT_GOALS_PARAM, ValueSourceConfiguration.forValue(true))
+		collector = config.createPlugin()
+		collector.initialize(context)
 	}
 	
 	private var step_id = 9L
@@ -85,4 +76,6 @@ class StepDurationGoalCollectorTests
 	private lateinit var context : MockSteppedTestExecutionContext
 	private lateinit var start_event : MuseEvent
 	private lateinit var end_event : MuseEvent
+	private lateinit var config: StepDurationGoalAssessorConfiguration
+	private lateinit var collector: StepDurationGoalAssessor
 }

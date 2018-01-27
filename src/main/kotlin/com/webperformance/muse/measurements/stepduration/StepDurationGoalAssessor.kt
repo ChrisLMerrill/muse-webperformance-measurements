@@ -10,10 +10,9 @@ import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.EndTestEventType
 import org.musetest.core.events.StartStepEventType
 import org.musetest.core.events.StepEventType
+import org.musetest.core.resource.generic.GenericResourceConfiguration
 import org.musetest.core.step.StepConfiguration
-import org.musetest.core.test.plugins.TestPlugin
-import org.musetest.core.test.plugins.TestPluginConfiguration
-import org.musetest.core.test.plugins.TestPluginType
+import org.musetest.core.test.plugin.BaseTestPlugin
 import org.musetest.core.values.ValueSourceConfiguration
 import java.util.*
 
@@ -22,7 +21,7 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationGoalAssessor : MuseEventListener, TestPlugin, DataCollector
+class StepDurationGoalAssessor(configuration: GenericResourceConfiguration) : BaseTestPlugin(configuration), DataCollector, MuseEventListener
 {
 	private val startTime = HashMap<Long, Long>()
 	private var goal = 0L
@@ -35,19 +34,17 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin, DataCollector
 	private var stepped_context: SteppedTestExecutionContext? = null
 	private var goals: StepDurationGoals? = null
 	
-	override fun configure(configuration: TestPluginConfiguration)
+	init
 	{
-		if (configuration.parameters != null && configuration.parameters.containsKey("goal"))
-			goal_source_config = configuration.parameters["goal"]
-		if (configuration.parameters != null && configuration.parameters.containsKey("step-has-tag"))
-			step_tag_source_config = configuration.parameters["step-has-tag"]
-		if (configuration.parameters != null && configuration.parameters.containsKey("step-goal-name"))
-			step_goal_name_source_config = configuration.parameters["step-goal-name"]
-		if (configuration.parameters != null && configuration.parameters.containsKey("collect-goals"))
-			collect_goals_config = configuration.parameters["collect-goals"]
+		if (configuration.parameters != null && configuration.parameters.containsKey(StepDurationGoalAssessorConfiguration.GOAL_PARAM))
+			goal_source_config = configuration.parameters[StepDurationGoalAssessorConfiguration.GOAL_PARAM]
+		if (configuration.parameters != null && configuration.parameters.containsKey(StepDurationGoalAssessorConfiguration.STEP_TAG_PARAM))
+			step_tag_source_config = configuration.parameters[StepDurationGoalAssessorConfiguration.STEP_TAG_PARAM]
+		if (configuration.parameters != null && configuration.parameters.containsKey(StepDurationGoalAssessorConfiguration.GOAL_NAME_PARAM))
+			step_goal_name_source_config = configuration.parameters[StepDurationGoalAssessorConfiguration.GOAL_NAME_PARAM]
+		if (configuration.parameters != null && configuration.parameters.containsKey(StepDurationGoalAssessorConfiguration.COLLECT_GOALS_PARAM))
+			collect_goals_config = configuration.parameters[StepDurationGoalAssessorConfiguration.COLLECT_GOALS_PARAM]
 	}
-	
-	override fun getType(): String = TYPE
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
@@ -139,6 +136,7 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin, DataCollector
 		val TYPE = "wpi.measurements.step-duration-goal-assessor"
 	}
 	
+/*
 	// discovered by reflection
 	@Suppress("unused")
 	class StepDurationGoalAssessorType : TestPluginType()
@@ -147,4 +145,5 @@ class StepDurationGoalAssessor : MuseEventListener, TestPlugin, DataCollector
 		override fun getDisplayName(): String = "Step Duration Goal Assessor"
 		override fun getShortDescription(): String = "Records events indicating the satisfaction of the step duration against the performance goal"
 	}
+*/
 }

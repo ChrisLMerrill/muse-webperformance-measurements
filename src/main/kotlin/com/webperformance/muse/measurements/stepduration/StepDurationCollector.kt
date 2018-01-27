@@ -9,9 +9,9 @@ import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.EndTestEventType
 import org.musetest.core.events.StartStepEventType
 import org.musetest.core.events.StepEventType
+import org.musetest.core.resource.generic.GenericResourceConfiguration
 import org.musetest.core.step.StepConfiguration
-import org.musetest.core.test.plugins.TestPluginConfiguration
-import org.musetest.core.test.plugins.TestPluginType
+import org.musetest.core.test.plugin.BaseTestPlugin
 import org.musetest.core.values.ValueSourceConfiguration
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -21,7 +21,7 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationCollector : MuseEventListener, DataCollector
+class StepDurationCollector(configuration: GenericResourceConfiguration) : BaseTestPlugin(configuration), DataCollector, MuseEventListener
 {
 	private val startTime = HashMap<Long, Long>()
 	private val data = StepDurations()
@@ -30,16 +30,9 @@ class StepDurationCollector : MuseEventListener, DataCollector
 	private lateinit var test_context: MuseExecutionContext
 	private var stepped_context: SteppedTestExecutionContext? = null
 	
-	override fun configure(configuration: TestPluginConfiguration)
-	{
-		if (configuration.parameters != null && configuration.parameters.containsKey("step-has-tag"))
-			step_tag_source_config = configuration.parameters["step-has-tag"]
-LOG.error("Configured")
-	}
-	
-	override fun getType(): String
-	{
-		return TYPE_ID
+	init {
+		if (configuration.parameters != null && configuration.parameters.containsKey("steptag"))
+			step_tag_source_config = configuration.parameters["steptag"]
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
@@ -55,21 +48,7 @@ LOG.error("Configured")
 			step_tag = tag_source.resolveValue(context).toString()
 		}
 
-LOG.error("Initialized. have test context: " + (stepped_context != null))
-	}
-	
-	private fun findStepTestContext(context: MuseExecutionContext?): SteppedTestExecutionContext?
-	{
-//LOG.error("looking for stepped context in a " + context.javaClass.simpleName)
-		var this_context = context
-		while (this_context != null)
-		{
-LOG.error("context is a " + this_context.javaClass.simpleName)
-			if (this_context is SteppedTestExecutionContext)
-				return this_context
-			this_context = this_context.parent
-		}
-		return null
+LOG.error("Collecting for steps with tag ${step_tag}")
 	}
 	
 	override fun getData(): StepDurations
@@ -79,7 +58,6 @@ LOG.error("context is a " + this_context.javaClass.simpleName)
 	
 	override fun eventRaised(event: MuseEvent)
 	{
-LOG.error("received event: " + event.typeId)
 		if (EndTestEventType.TYPE_ID.equals(event.typeId))
 			test_context.removeEventListener(this)
 		else if (StartStepEventType.TYPE_ID == event.typeId)
@@ -93,20 +71,17 @@ LOG.error("received event: " + event.typeId)
 			else
 				LOG.error("Did not find the step: " + StepEventType.getStepId(event))
 		}
-		else if (EndStepEventType.TYPE_ID == event.typeId)
+		else if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
 		{
 			val step = findStep(event)
 			if (step != null)
 			{
 				if (step_tag == null || step.hasTag(step_tag))
 				{
-					if (!event.hasTag(StepEventType.INCOMPLETE))
-					{
-						val step_id = step.stepId
-						val started: Long? = startTime.remove(step_id)
-						if (started != null)
-							data.record(step_id, (event.timestampNanos - started)/1000000)
-					}
+					val step_id = step.stepId
+					val started: Long? = startTime.remove(step_id)
+					if (started != null)
+						data.record(step_id, (event.timestampNanos - started)/1000000)
 				}
 			}
 		}
@@ -120,26 +95,6 @@ LOG.error("received event: " + event.typeId)
 	companion object
 	{
 		val TYPE_ID = "wpi.measurements.step-durations"
-	}
-	
-	// discovered by reflection
-	@Suppress("unused")
-	class StepDurationType : TestPluginType()
-	{
-		override fun getTypeId(): String
-		{
-			return TYPE_ID
-		}
-		
-		override fun getDisplayName(): String
-		{
-			return "Step Duration Collector"
-		}
-		
-		override fun getShortDescription(): String
-		{
-			return "Measures and collects the durations of executed steps"
-		}
 	}
 
 	private val LOG = LoggerFactory.getLogger(StepDurationCollector::class.java)

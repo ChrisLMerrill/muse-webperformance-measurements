@@ -12,7 +12,6 @@ import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
 import org.musetest.core.step.StepExecutionStatus
 import org.musetest.core.steptest.SteppedTest
-import org.musetest.core.test.plugins.TestPluginConfiguration
 import org.musetest.core.values.ValueSourceConfiguration
 
 /**
@@ -23,8 +22,7 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun passGoalEvent()
 	{
-		// create an assessor
-		runTest(900L, 1000L)
+		runTest(900L, 1000L, StepDurationGoalAssessorConfiguration())
 		
 		// check the received events
 		Assert.assertEquals(3, events_received.size)
@@ -44,8 +42,7 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun failGoalEvent()
 	{
-		// create an assessor
-		runTest(1200L, 1000L)
+		runTest(1200L, 1000L, StepDurationGoalAssessorConfiguration())
 		
 		// check the received events
 		Assert.assertEquals(3, events_received.size)
@@ -74,7 +71,7 @@ class StepDurationGoalAssessorTests
 	fun ignoreIncompleteStepEndEvents()
 	{
 		// create an assessor
-		runTest(1200L, 1000L)
+		runTest(1200L, 1000L, StepDurationGoalAssessorConfiguration())
 		
 		context.raiseEvent(StartStepEventType.create(step_config, context))
 		val incomplete_end_event = EndStepEventType.create(step_config, context, BasicStepExecutionResult(StepExecutionStatus.INCOMPLETE))
@@ -89,8 +86,8 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun ignoreUntaggedSteps()
 	{
-		val config = TestPluginConfiguration()
-		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
+		val config = StepDurationGoalAssessorConfiguration()
+		config.parameters().addSource(StepDurationGoalAssessorConfiguration.STEP_TAG_PARAM, ValueSourceConfiguration.forValue("assess-goal"))
 		runTest(200L, 100L, config)
 		
 		// there should be no goal assessment event
@@ -100,8 +97,8 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun evaluateTaggedSteps()
 	{
-		val config = TestPluginConfiguration()
-		config.addParameter("step-has-tag", ValueSourceConfiguration.forValue("assess-goal"))
+		val config = StepDurationGoalAssessorConfiguration()
+		config.parameters().addSource(StepDurationGoalAssessorConfiguration.STEP_TAG_PARAM, ValueSourceConfiguration.forValue("assess-goal"))
 		step_config.addTag("assess-goal")
 		runTest(200L, 80L, config)
 		
@@ -113,22 +110,17 @@ class StepDurationGoalAssessorTests
 	
 	private fun runTest(duration: Long, goal: Long)
 	{
-		runTest(duration, goal, TestPluginConfiguration())
+		runTest(duration, goal, StepDurationGoalAssessorConfiguration.StepDurationGoalAssessorType().create())
 	}
 
-	private fun runTest(duration: Long, goal: Long, config: TestPluginConfiguration)
+	private fun runTest(duration: Long, goal: Long, config: StepDurationGoalAssessorConfiguration)
 	{
-		initialize(config, goal)
+		config.parameters().addSource("goal", ValueSourceConfiguration.forValue(goal))
+		assessor = config.createPlugin()
 		assessor.initialize(context) // it should subscribe itself to the context
 		runStep(duration)
 	}
 
-	private fun initialize(config: TestPluginConfiguration, goal: Long)
-	{
-		config.addParameter("goal", ValueSourceConfiguration.forValue(goal))
-		assessor.configure(config)
-	}
-	
 	private fun runStep(duration: Long)
 	{
 		end_event.timestampNanos = start_event.timestampNanos + duration * 1000000 // 2 seconds in nanos
@@ -141,8 +133,8 @@ class StepDurationGoalAssessorTests
 	@Test
 	fun useGoalConfiguredOnStep()
 	{
-		val config = TestPluginConfiguration()
-		config.addParameter("step-goal-name", ValueSourceConfiguration.forValue("duration-goal"))
+		val config = StepDurationGoalAssessorConfiguration()
+		config.parameters().addSource(StepDurationGoalAssessorConfiguration.GOAL_NAME_PARAM, ValueSourceConfiguration.forValue("duration-goal"))
 		step_config.setMetadataField("duration-goal", 100)
 		runTest(300L, 500L, config)
 		
@@ -159,8 +151,9 @@ class StepDurationGoalAssessorTests
 		 * If the assessor has been configured with a custom goal name, it should still evaluate
 		 * the steps without a custom goal using the default goal.
 		 */
-		val config = TestPluginConfiguration()
-		config.addParameter("step-goal-name", ValueSourceConfiguration.forValue("duration-goal"))
+
+		val config = StepDurationGoalAssessorConfiguration()
+		config.parameters().addSource(StepDurationGoalAssessorConfiguration.GOAL_NAME_PARAM, ValueSourceConfiguration.forValue("duration-goal"))
 		runTest(300L, 500L, config)
 		
 		// there should be 1 goal assessment event (a fail)
@@ -190,5 +183,5 @@ class StepDurationGoalAssessorTests
 	private lateinit var context : MockSteppedTestExecutionContext
 	private lateinit var start_event : MuseEvent
 	private lateinit var end_event : MuseEvent
-	private val assessor = StepDurationGoalAssessor()
+	private lateinit var assessor : StepDurationGoalAssessor
 }
