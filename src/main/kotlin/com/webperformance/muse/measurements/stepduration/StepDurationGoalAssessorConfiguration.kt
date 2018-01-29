@@ -10,7 +10,7 @@ import org.musetest.core.values.descriptor.*
 /**
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-@MuseTypeId("step-duration-collector")
+@MuseTypeId("step-duration-goal-assessor")
 @MuseSubsourceDescriptors(
 	MuseSubsourceDescriptor(displayName = "Apply automatically?", description = "If this source resolves to true, this plugin configuration will be automatically applied to tests", type = SubsourceDescriptor.Type.Named, name = BaseTestPlugin.AUTO_APPLY_PARAM),
 	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = BaseTestPlugin.APPLY_CONDITION_PARAM),
@@ -31,7 +31,7 @@ class StepDurationGoalAssessorConfiguration : GenericResourceConfiguration(), Te
 		return StepDurationGoalAssessor(this)
 	}
 
-	class StepDurationGoalAssessorType : ResourceSubtype(TYPE_ID, "Step Duration GoalAssessor", StepDurationGoalAssessorConfiguration::class.java, TestPluginConfiguration.TestPluginConfigurationResourceType())
+	class StepDurationGoalAssessorType : ResourceSubtype(TYPE_ID, "Step Duration Goal Assessor", StepDurationGoalAssessorConfiguration::class.java, TestPluginConfiguration.TestPluginConfigurationResourceType())
 	{
 
 		override fun create(): StepDurationGoalAssessorConfiguration
