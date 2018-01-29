@@ -3,6 +3,7 @@ package com.webperformance.muse.measurements.stepduration
 import org.musetest.core.*
 import org.musetest.core.resource.generic.*
 import org.musetest.core.resource.types.*
+import org.musetest.core.suite.plugin.TestSuitePluginConfiguration
 import org.musetest.core.test.plugin.*
 import org.musetest.core.values.*
 import org.musetest.core.values.descriptor.*
@@ -16,7 +17,7 @@ import org.musetest.core.values.descriptor.*
 	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = BaseTestPlugin.APPLY_CONDITION_PARAM),
 	MuseSubsourceDescriptor(displayName = "Step tag", description = "If this parameter is present, only collect durations on steps tagged with the value of this parameter", type = SubsourceDescriptor.Type.Named, name = StepDurationCollectorConfiguration.STEP_TAG_PARAM, optional = true)
 )
-class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(), TestPluginConfiguration
+class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(), TestSuitePluginConfiguration
 {
 	override fun getType(): ResourceType?
 	{
@@ -28,7 +29,7 @@ class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(
 		return AverageStepDurationCalculator(this)
 	}
 
-	class StepDurationCollectorType : ResourceSubtype(TYPE_ID, "Average Step Duration Calculator", AverageStepDurationCalculatorConfiguration::class.java, TestPluginConfiguration.TestPluginConfigurationResourceType())
+	class StepDurationCollectorType : ResourceSubtype(TYPE_ID, "Average Step Duration Calculator", AverageStepDurationCalculatorConfiguration::class.java, TestSuitePluginConfiguration.TestSuitePluginConfigurationResourceType())
 	{
 
 		override fun create(): AverageStepDurationCalculatorConfiguration
@@ -53,5 +54,3 @@ class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(
 		const val STEP_TAG_PARAM = "steptag"
 	}
 }
-
-
