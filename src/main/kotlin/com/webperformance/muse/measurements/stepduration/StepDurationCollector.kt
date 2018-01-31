@@ -9,9 +9,9 @@ import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.EndTestEventType
 import org.musetest.core.events.StartStepEventType
 import org.musetest.core.events.StepEventType
+import org.musetest.core.plugins.GenericConfigurableSteppedTestPlugin
 import org.musetest.core.resource.generic.GenericResourceConfiguration
 import org.musetest.core.step.StepConfiguration
-import org.musetest.core.test.plugin.BaseTestPlugin
 import org.musetest.core.values.ValueSourceConfiguration
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -21,7 +21,7 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class StepDurationCollector(configuration: GenericResourceConfiguration) : BaseTestPlugin(configuration), DataCollector, MuseEventListener
+class StepDurationCollector(configuration: GenericResourceConfiguration) : GenericConfigurableSteppedTestPlugin(configuration), DataCollector, MuseEventListener
 {
 	private val startTime = HashMap<Long, Long>()
 	private val data = StepDurations()

@@ -3,17 +3,16 @@ package com.webperformance.muse.measurements.stepduration
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
-import org.musetest.core.MuseTestSuite
 import org.musetest.core.context.SteppedTestExecutionContext
 import org.musetest.core.datacollection.DataCollector
 import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.EndTestEventType
 import org.musetest.core.events.StartStepEventType
 import org.musetest.core.events.StepEventType
+import org.musetest.core.plugins.GenericConfigurablePlugin
 import org.musetest.core.resource.MuseInstantiationException
 import org.musetest.core.step.StepConfiguration
-import org.musetest.core.suite.plugin.TestSuitePlugin
-import org.musetest.core.test.plugin.BaseTestPlugin
+import org.musetest.core.suite.TestSuiteExecutionContext
 import org.musetest.core.values.ValueSourceConfiguration
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -23,7 +22,7 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class AverageStepDurationCalculator(configuration: AverageStepDurationCalculatorConfiguration) : BaseTestPlugin(configuration), TestSuitePlugin, DataCollector
+class AverageStepDurationCalculator(configuration: AverageStepDurationCalculatorConfiguration) : GenericConfigurablePlugin(configuration), DataCollector
 {
 	private val startTime = HashMap<Long, Long>()
 	private val totals = HashMap<Long, Long>()
@@ -37,9 +36,9 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 			step_tag_source_config = configuration.parameters["steptag"]
 	}
 	
-	override fun shouldAddToSuite(context: MuseExecutionContext?, suite: MuseTestSuite?, automatic: Boolean): Boolean
+	override fun applyToContextType(context: MuseExecutionContext?): Boolean
 	{
-		return shouldAddToTestContext(context, automatic)
+		return context is TestSuiteExecutionContext
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
