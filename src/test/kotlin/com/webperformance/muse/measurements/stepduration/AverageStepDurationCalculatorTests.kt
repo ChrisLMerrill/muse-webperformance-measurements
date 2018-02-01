@@ -6,7 +6,6 @@ import org.junit.Test
 import org.musetest.core.MuseEvent
 import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.StartStepEventType
-import org.musetest.core.mocks.MockStepExecutionContext
 import org.musetest.core.mocks.MockSteppedTestExecutionContext
 import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
@@ -18,8 +17,9 @@ class AverageStepDurationCalculatorTests
 	@Test
 	fun averageOfSingleDuration()
 	{
-		val calculator = AverageStepDurationCalculatorConfiguration().createPlugin()
-		calculator.initialize(context)
+		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCollectorType().create().createPlugin()
+		calculator.conditionallyAddToContext(context, false)
+		context.initializePlugins()
 		
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
@@ -31,8 +31,9 @@ class AverageStepDurationCalculatorTests
 	@Test
 	fun averageOfTwoDurations()
 	{
-		val calculator = AverageStepDurationCalculatorConfiguration().createPlugin()
-		calculator.initialize(context)
+		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCollectorType().create().createPlugin()
+		calculator.conditionallyAddToContext(context, false)
+		context.initializePlugins()
 		
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
@@ -53,8 +54,9 @@ class AverageStepDurationCalculatorTests
 		step_config.addChild(step2)
 		context = MockSteppedTestExecutionContext(test)
 		
-		val calculator = AverageStepDurationCalculatorConfiguration().createPlugin()
-		calculator.initialize(context)
+		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCollectorType().create().createPlugin()
+		calculator.conditionallyAddToContext(context, false)
+		context.initializePlugins()
 		
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
@@ -93,6 +95,6 @@ class AverageStepDurationCalculatorTests
 	private lateinit var step_config : StepConfiguration
 	private lateinit var start_event : MuseEvent
 	private lateinit var end_event : MuseEvent
-	private lateinit var context : MockStepExecutionContext
+	private lateinit var context : MockSteppedTestExecutionContext
 	private lateinit var test : SteppedTest
 }

@@ -47,8 +47,6 @@ class StepDurationCollector(configuration: GenericResourceConfiguration) : Gener
 			val tag_source = config.createSource(context.project)
 			step_tag = tag_source.resolveValue(context).toString()
 		}
-
-LOG.error("Collecting for steps with tag ${step_tag}")
 	}
 	
 	override fun getData(): StepDurations

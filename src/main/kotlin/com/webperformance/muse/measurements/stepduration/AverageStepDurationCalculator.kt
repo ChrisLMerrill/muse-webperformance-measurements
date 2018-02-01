@@ -10,7 +10,7 @@ import org.musetest.core.events.EndTestEventType
 import org.musetest.core.events.StartStepEventType
 import org.musetest.core.events.StepEventType
 import org.musetest.core.plugins.GenericConfigurablePlugin
-import org.musetest.core.resource.MuseInstantiationException
+import org.musetest.core.plugins.MusePlugin
 import org.musetest.core.step.StepConfiguration
 import org.musetest.core.suite.TestSuiteExecutionContext
 import org.musetest.core.values.ValueSourceConfiguration
@@ -24,30 +24,44 @@ import java.util.*
  */
 class AverageStepDurationCalculator(configuration: AverageStepDurationCalculatorConfiguration) : GenericConfigurablePlugin(configuration), DataCollector
 {
-	private val startTime = HashMap<Long, Long>()
 	private val totals = HashMap<Long, Long>()
 	private val counts = HashMap<Long, Long>()
 	private var step_tag: String? = null
 	private var step_tag_source_config: ValueSourceConfiguration? = null
-	private lateinit var stepped_context: SteppedTestExecutionContext
 	
 	init {
 		if (configuration.parameters != null && configuration.parameters.containsKey("steptag"))
 			step_tag_source_config = configuration.parameters["steptag"]
 	}
 	
+	override fun conditionallyAddToContext(context: MuseExecutionContext, automatic: Boolean): Boolean
+	{
+		if (!applyToContextType(context))
+			return false
+		if (automatic)
+		{
+			if (!applyAutomatically(context))
+				return false
+		}
+		if (!applyToThisTest(context))
+			return false
+		
+		if (context is TestSuiteExecutionContext)
+			context.addPlugin(this)
+		else if (context is SteppedTestExecutionContext)
+			context.addPlugin(TestStepDurationCollector())
+		return true
+	}
+	
 	override fun applyToContextType(context: MuseExecutionContext?): Boolean
 	{
-		return context is TestSuiteExecutionContext
+		return context is TestSuiteExecutionContext || context is SteppedTestExecutionContext
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
-		stepped_context = MuseExecutionContext.findAncestor(context, SteppedTestExecutionContext::class.java)
-		if (stepped_context == null)
-			throw MuseInstantiationException("AverageStepDurationCalculator can only be used in stepped tests")
-		
-		EventListener(context)
+		if (!(context is TestSuiteExecutionContext))
+			return
 
 		step_tag_source_config?.let { config ->
 			val tag_source = config.createSource(context.project)
@@ -85,43 +99,25 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 		counts.put(step_id, count)
 	}
 	
-	@Synchronized private fun recordStartTime(step_id: Long, start_time: Long)
-	{
-		val step = findStep(step_id)
-		if (step != null)
-		{
-			if (step_tag == null || step.hasTag(step_tag))
-				startTime.put(step.stepId, start_time)
-		}
-		else
-			LOG.error("Did not find the step: " + step_id)
-	}
-	
-	@Synchronized private fun handleStepCompletion(step_id: Long, finish_time: Long)
-	{
-		val step = findStep(step_id)
-		if (step != null)
-		{
-			if (step_tag == null || step.hasTag(step_tag))
-			{
-				val started: Long? = startTime.remove(step_id)
-				if (started != null)
-					recordDuration(step_id, (finish_time - started)/1000000)
-			}
-		}
-	}
-	
-	private fun findStep(id: Long): StepConfiguration?
-	{
-		return stepped_context.stepLocator?.findStep(id)
-	}
-	
 	private val LOG = LoggerFactory.getLogger(AverageStepDurationCalculator::class.java)
 	
-	inner class EventListener(val context: MuseExecutionContext) : MuseEventListener
+	inner class TestStepDurationCollector : MusePlugin, MuseEventListener
 	{
-		init {
-			context.addEventListener(this)
+		lateinit var context : SteppedTestExecutionContext
+		private val startTime = HashMap<Long, Long>()
+		
+		override fun conditionallyAddToContext(context: MuseExecutionContext?, automatic: Boolean): Boolean
+		{
+			return false
+		}
+		
+		override fun initialize(the_context: MuseExecutionContext)
+		{
+			if (the_context is SteppedTestExecutionContext)
+			{
+				context = the_context
+				context.addEventListener(this)
+			}
 		}
 		
 		override fun eventRaised(event: MuseEvent)
@@ -131,9 +127,46 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 			else if (StartStepEventType.TYPE_ID == event.typeId)
 				recordStartTime(StepEventType.getStepId(event), event.timestampNanos)
 			else if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
-				handleStepCompletion(StepEventType.getStepId(event), event.timestampNanos)
+			{
+				val duration = calculateDuration(StepEventType.getStepId(event), event.timestampNanos)
+				if (duration >= 0)
+					recordDuration(StepEventType.getStepId(event), duration)
+			}
 			else if (EndTestEventType.TYPE_ID == event.typeId)
 				context.removeEventListener(this)
 		}
+
+		private fun recordStartTime(step_id: Long, start_time: Long)
+		{
+			val step = findStep(step_id)
+			if (step != null)
+			{
+				if (step_tag == null || step.hasTag(step_tag))
+					startTime.put(step.stepId, start_time)
+			}
+			else
+				LOG.error("Did not find the step: " + step_id)
+		}
+		
+		private fun calculateDuration(step_id: Long, finish_time: Long): Long
+		{
+			val step = findStep(step_id)
+			if (step != null)
+			{
+				if (step_tag == null || step.hasTag(step_tag))
+				{
+					val started: Long? = startTime.remove(step_id)
+					if (started != null)
+						return (finish_time - started)/1000000
+				}
+			}
+			return -1
+		}
+		
+		private fun findStep(id: Long): StepConfiguration?
+		{
+			return context.stepLocator?.findStep(id)
+		}
+		
 	}
 }

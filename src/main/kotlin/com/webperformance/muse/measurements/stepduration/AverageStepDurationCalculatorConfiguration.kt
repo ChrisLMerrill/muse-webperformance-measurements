@@ -48,7 +48,7 @@ class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(
 
 		override fun getDescriptor(): ResourceDescriptor
 		{
-			return DefaultResourceDescriptor(this, "Measures the durations of executed steps and calculates the average")
+			return DefaultResourceDescriptor(this, "Measures the durations of executed steps and calculates the average for the test suite")
 		}
 	}
 
