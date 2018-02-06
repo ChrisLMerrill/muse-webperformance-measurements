@@ -14,7 +14,8 @@ dependencies {
     compile 'org.musetest:muse-core:0.11'
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"
+    
     testCompile 'org.musetest:muse-commandline:0.11'  // only needed for manual testing
     testCompile 'junit:junit:4.12'
 }
