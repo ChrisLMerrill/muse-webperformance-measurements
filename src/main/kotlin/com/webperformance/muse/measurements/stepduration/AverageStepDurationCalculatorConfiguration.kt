@@ -20,13 +20,13 @@ import org.musetest.core.values.descriptor.SubsourceDescriptor
 @MuseSubsourceDescriptors(
 	MuseSubsourceDescriptor(displayName = "Apply automatically?", description = "If this source resolves to true, this plugin configuration will be automatically applied to tests", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.AUTO_APPLY_PARAM),
 	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.APPLY_CONDITION_PARAM),
-	MuseSubsourceDescriptor(displayName = "Step tag", description = "If this parameter is present, only collect durations on steps tagged with the value of this parameter", type = SubsourceDescriptor.Type.Named, name = StepDurationCollectorConfiguration.STEP_TAG_PARAM, optional = true)
+	MuseSubsourceDescriptor(displayName = "Step tag", description = "If this parameter is present, only collect durations on steps tagged with the value of this parameter", type = SubsourceDescriptor.Type.Named, name = AverageStepDurationCalculatorConfiguration.STEP_TAG_PARAM, optional = true)
 )
 class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(), PluginConfiguration
 {
 	override fun getType(): ResourceType?
 	{
-		return StepDurationCollectorType()
+		return StepDurationCalculatorType()
 	}
 
 	override fun createPlugin(): AverageStepDurationCalculator
@@ -34,7 +34,7 @@ class AverageStepDurationCalculatorConfiguration : GenericResourceConfiguration(
 		return AverageStepDurationCalculator(this)
 	}
 
-	class StepDurationCollectorType : ResourceSubtype(TYPE_ID, "Average Step Duration Calculator", AverageStepDurationCalculatorConfiguration::class.java, PluginConfiguration.PluginConfigurationResourceType())
+	class StepDurationCalculatorType : ResourceSubtype(TYPE_ID, "Average Step Duration Calculator", AverageStepDurationCalculatorConfiguration::class.java, PluginConfiguration.PluginConfigurationResourceType())
 	{
 
 		override fun create(): AverageStepDurationCalculatorConfiguration

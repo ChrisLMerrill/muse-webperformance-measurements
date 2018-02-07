@@ -17,7 +17,7 @@ class AverageStepDurationCalculatorTests
 	@Test
 	fun averageOfSingleDuration()
 	{
-		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCollectorType().create().createPlugin()
+		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCalculatorType().create().createPlugin()
 		calculator.conditionallyAddToContext(context, false)
 		context.initializePlugins()
 		
@@ -31,7 +31,7 @@ class AverageStepDurationCalculatorTests
 	@Test
 	fun averageOfTwoDurations()
 	{
-		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCollectorType().create().createPlugin()
+		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCalculatorType().create().createPlugin()
 		calculator.conditionallyAddToContext(context, false)
 		context.initializePlugins()
 		
@@ -54,7 +54,7 @@ class AverageStepDurationCalculatorTests
 		step_config.addChild(step2)
 		context = MockSteppedTestExecutionContext(test)
 		
-		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCollectorType().create().createPlugin()
+		val calculator = AverageStepDurationCalculatorConfiguration.StepDurationCalculatorType().create().createPlugin()
 		calculator.conditionallyAddToContext(context, false)
 		context.initializePlugins()
 		
