@@ -1,7 +1,10 @@
 package com.webperformance.muse.measurements.stepduration
 
 import com.webperformance.muse.measurements.Measurement
-import com.webperformance.muse.measurements.MeasurementProducer
+import com.webperformance.muse.measurements.Measurements
+import com.webperformance.muse.measurements.MeasurementsProducer
+import com.webperformance.muse.measurements.containers.EmptyMeasurements
+import com.webperformance.muse.measurements.containers.SingletonMeasurements
 import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
@@ -23,14 +26,16 @@ import java.util.*
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class AverageStepDurationProducer(configuration: AverageStepDurationProducerConfiguration) : GenericConfigurablePlugin(configuration), MeasurementProducer
+class AverageStepDurationProducer(configuration: AverageStepDurationProducerConfiguration) : GenericConfigurablePlugin(configuration), MeasurementsProducer
 {
 	private val totals = HashMap<Long, Long>()
 	private val counts = HashMap<Long, Long>()
 	private var step_tag: String? = null
 	private var step_tag_source_config: ValueSourceConfiguration? = null
+	private var initialized = false
 	
 	init {
+println("initing ASDP")
 		if (configuration.parameters != null && configuration.parameters.containsKey("steptag"))
 			step_tag_source_config = configuration.parameters["steptag"]
 	}
@@ -48,10 +53,16 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 			return false
 		
 		if (context is TestSuiteExecutionContext)
+		{
 			context.addPlugin(this)
-		else if (context is SteppedTestExecutionContext)
+			return true
+		}
+		else if (context is SteppedTestExecutionContext && initialized)
+		{
 			context.addPlugin(TestStepDurationCollector())
-		return true
+			return true
+		}
+		return false
 	}
 	
 	override fun applyToContextType(context: MuseExecutionContext?): Boolean
@@ -61,17 +72,21 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
+println("initializing ASDP into " + context.javaClass.simpleName)
 		if (!(context is TestSuiteExecutionContext))
 			return
+		
+		initialized = true
 
 		step_tag_source_config?.let { config ->
 			val tag_source = config.createSource(context.project)
 			step_tag = tag_source.resolveValue(context).toString()
 		}
+println("step tag is ${step_tag}")
 	}
 	
 	@Synchronized
-	override fun getMeasurement(): Measurement
+	override fun getMeasurements(): Measurements
 	{
 		var total = 0L
 		var count = 0L
@@ -83,12 +98,15 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 		totals.clear()
 		counts.clear()
 		
-		return Measurement(total / count)
+		if (count == 0L)
+			return EmptyMeasurements()
+		return SingletonMeasurements(Measurement(total / count))
 	}
 	
 	@Synchronized
 	private fun recordDuration(step_id: Long, duration: Long)
 	{
+println("recording duration: " + duration + " for step " + step_id)
 		var total = totals[step_id]
 		if (total == null)
 			total = duration
@@ -118,6 +136,7 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 		
 		override fun initialize(the_context: MuseExecutionContext)
 		{
+println("initializing ASDP.TSDC into " + the_context.javaClass.simpleName)
 			if (the_context is SteppedTestExecutionContext)
 			{
 				context = the_context
@@ -133,9 +152,14 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 				recordStartTime(StepEventType.getStepId(event), event.timestampNanos)
 			else if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
 			{
-				val duration = calculateDuration(StepEventType.getStepId(event), event.timestampNanos)
+				val step_id = StepEventType.getStepId(event)
+				val step = findStep(step_id)
+println("step has tag ${step_tag}: ${step!!.hasTag(step_tag)}")
+				if (step == null || (step_tag != null && !step.hasTag(step_tag)))
+					return;
+				val duration = calculateDuration(step_id, event.timestampNanos)
 				if (duration >= 0)
-					recordDuration(StepEventType.getStepId(event), duration)
+					recordDuration(step_id, duration)
 			}
 			else if (EndTestEventType.TYPE_ID == event.typeId)
 				context.removeEventListener(this)
@@ -155,16 +179,9 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 		
 		private fun calculateDuration(step_id: Long, finish_time: Long): Long
 		{
-			val step = findStep(step_id)
-			if (step != null)
-			{
-				if (step_tag == null || step.hasTag(step_tag))
-				{
-					val started: Long? = startTime.remove(step_id)
-					if (started != null)
-						return (finish_time - started)/1000000
-				}
-			}
+			val started: Long? = startTime.remove(step_id)
+			if (started != null)
+				return (finish_time - started)/1000000
 			return -1
 		}
 		

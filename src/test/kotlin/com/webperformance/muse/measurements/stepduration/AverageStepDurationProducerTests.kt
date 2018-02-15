@@ -7,24 +7,23 @@ import org.musetest.core.MuseEvent
 import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.StartStepEventType
 import org.musetest.core.mocks.MockSteppedTestExecutionContext
+import org.musetest.core.project.SimpleProject
 import org.musetest.core.step.BasicStepExecutionResult
 import org.musetest.core.step.StepConfiguration
 import org.musetest.core.step.StepExecutionStatus
 import org.musetest.core.steptest.SteppedTest
+import org.musetest.core.suite.DefaultTestSuiteExecutionContext
+import org.musetest.core.suite.SimpleTestSuite
 
 class AverageStepDurationProducerTests
 {
 	@Test
 	fun averageOfSingleDuration()
 	{
-		val producer = AverageStepDurationProducerConfiguration.StepDurationProducerType().create().createPlugin()
-		producer.conditionallyAddToContext(context, false)
-		context.initializePlugins()
-		
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 		
-		val measurement = producer.getMeasurement()
+		val measurement = producer.getMeasurements().iterator().next()
 		
 		Assert.assertEquals(1000L, measurement.value)
 	}
@@ -32,10 +31,6 @@ class AverageStepDurationProducerTests
 	@Test
 	fun averageOfTwoDurations()
 	{
-		val producer = AverageStepDurationProducerConfiguration.StepDurationProducerType().create().createPlugin()
-		producer.conditionallyAddToContext(context, false)
-		context.initializePlugins()
-		
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 
@@ -43,7 +38,7 @@ class AverageStepDurationProducerTests
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 
-		val measurement = producer.getMeasurement()
+		val measurement = producer.getMeasurements().iterator().next()
 		
 		Assert.assertEquals(800L, measurement.value)
 	}
@@ -51,21 +46,17 @@ class AverageStepDurationProducerTests
 	@Test
 	fun twoMeasurements()
 	{
-		val producer = AverageStepDurationProducerConfiguration.StepDurationProducerType().create().createPlugin()
-		producer.conditionallyAddToContext(context, false)
-		context.initializePlugins()
-		
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 
-		val measurement1 = producer.getMeasurement()
+		val measurement1 = producer.getMeasurements().iterator().next()
 		Assert.assertEquals(1000L, measurement1.value)
 		
 		createEvents(600L)
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 
-		val measurement2 = producer.getMeasurement()
+		val measurement2 = producer.getMeasurements().iterator().next()
 		Assert.assertEquals(600L, measurement2.value)
 	}
 	
@@ -73,10 +64,18 @@ class AverageStepDurationProducerTests
 	fun setup()
 	{
 		step_config = StepConfiguration("step9")
+		step_config.addTag("measure")
 		step_config.setMetadataField(StepConfiguration.META_ID, 9L)
 		test = SteppedTest(step_config)
 		context = MockSteppedTestExecutionContext(test)
 		createEvents(1000L)
+
+		producer = AverageStepDurationProducerConfiguration.AverageStepDurationProducerType().create().createPlugin()
+		val suite_context = DefaultTestSuiteExecutionContext(SimpleProject(), SimpleTestSuite())
+		producer.conditionallyAddToContext(suite_context, false)
+		suite_context.initializePlugins()
+		producer.conditionallyAddToContext(context, false)
+		context.initializePlugins()
 	}
 	
 	private fun createEvents(duration: Long, step: StepConfiguration = step_config)
@@ -92,4 +91,5 @@ class AverageStepDurationProducerTests
 	private lateinit var end_event : MuseEvent
 	private lateinit var context : MockSteppedTestExecutionContext
 	private lateinit var test : SteppedTest
+	private lateinit var producer : AverageStepDurationProducer
 }

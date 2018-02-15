@@ -26,7 +26,7 @@ class AverageStepDurationProducerConfiguration : GenericResourceConfiguration(),
 {
 	override fun getType(): ResourceType?
 	{
-		return StepDurationProducerType()
+		return AverageStepDurationProducerType()
 	}
 
 	override fun createPlugin(): AverageStepDurationProducer
@@ -34,7 +34,7 @@ class AverageStepDurationProducerConfiguration : GenericResourceConfiguration(),
 		return AverageStepDurationProducer(this)
 	}
 
-	class StepDurationProducerType : ResourceSubtype(TYPE_ID, "Average Step Duration Measurement Producer", AverageStepDurationProducerConfiguration::class.java, PluginConfiguration.PluginConfigurationResourceType())
+	class AverageStepDurationProducerType : ResourceSubtype(TYPE_ID, "Average Step Duration Measurement Producer", AverageStepDurationProducerConfiguration::class.java, PluginConfiguration.PluginConfigurationResourceType())
 	{
 
 		override fun create(): AverageStepDurationProducerConfiguration
