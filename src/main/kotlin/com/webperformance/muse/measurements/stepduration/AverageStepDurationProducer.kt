@@ -35,7 +35,6 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 	private var initialized = false
 	
 	init {
-println("initing ASDP")
 		if (configuration.parameters != null && configuration.parameters.containsKey("steptag"))
 			step_tag_source_config = configuration.parameters["steptag"]
 	}
@@ -72,7 +71,6 @@ println("initing ASDP")
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
-println("initializing ASDP into " + context.javaClass.simpleName)
 		if (!(context is TestSuiteExecutionContext))
 			return
 		
@@ -82,7 +80,6 @@ println("initializing ASDP into " + context.javaClass.simpleName)
 			val tag_source = config.createSource(context.project)
 			step_tag = tag_source.resolveValue(context).toString()
 		}
-println("step tag is ${step_tag}")
 	}
 	
 	@Synchronized
@@ -106,7 +103,6 @@ println("step tag is ${step_tag}")
 	@Synchronized
 	private fun recordDuration(step_id: Long, duration: Long)
 	{
-println("recording duration: " + duration + " for step " + step_id)
 		var total = totals[step_id]
 		if (total == null)
 			total = duration
@@ -136,7 +132,6 @@ println("recording duration: " + duration + " for step " + step_id)
 		
 		override fun initialize(the_context: MuseExecutionContext)
 		{
-println("initializing ASDP.TSDC into " + the_context.javaClass.simpleName)
 			if (the_context is SteppedTestExecutionContext)
 			{
 				context = the_context
@@ -154,9 +149,8 @@ println("initializing ASDP.TSDC into " + the_context.javaClass.simpleName)
 			{
 				val step_id = StepEventType.getStepId(event)
 				val step = findStep(step_id)
-println("step has tag ${step_tag}: ${step!!.hasTag(step_tag)}")
 				if (step == null || (step_tag != null && !step.hasTag(step_tag)))
-					return;
+					return
 				val duration = calculateDuration(step_id, event.timestampNanos)
 				if (duration >= 0)
 					recordDuration(step_id, duration)

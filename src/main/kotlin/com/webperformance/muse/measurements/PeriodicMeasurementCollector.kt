@@ -1,9 +1,10 @@
 package com.webperformance.muse.measurements
 
 import org.musetest.core.MuseExecutionContext
+import org.musetest.core.events.EndSuiteEventType
+import org.musetest.core.events.StartSuiteEventType
 import org.musetest.core.plugins.GenericConfigurablePlugin
 import org.musetest.core.suite.TestSuiteExecutionContext
-import org.slf4j.LoggerFactory
 
 /**
  * Collects average step duration metrics for all steps (in aggregate).
@@ -24,8 +25,54 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 
 		for (plugin in context.plugins)
 			if (plugin is MeasurementsProducer)
-				println("Found producer: " + plugin.javaClass.simpleName)
+				producers.add(plugin)
+		
+		context.addEventListener({ event ->
+			run {
+				if (StartSuiteEventType.TYPE_ID.equals(event.typeId) && (producers.size > 0))
+				{
+					val new_thread = Thread(collector)
+					thread = new_thread
+					new_thread.start()
+				}
+				else if (EndSuiteEventType.TYPE_ID.equals(event.typeId))
+					thread?.interrupt()
+			}
+		}
+		)
 	}
 	
-	private val LOG = LoggerFactory.getLogger(PeriodicMeasurementCollector::class.java)
+	private val producers = HashSet<MeasurementsProducer>()
+	private val collector = Collector()
+	private var thread : Thread? = null
+	
+	
+	inner class Collector : Runnable
+	{
+		override fun run()
+		{
+			var done = false
+			while (!done)
+			{
+				for (producer in producers)
+				{
+					for (measurement in producer.getMeasurements().iterator())
+						println("collected measurement: ${measurement}")  // TODO send it somewhere
+				}
+				if (interrupted)
+					done = true
+				else
+					try
+					{
+						Thread.sleep(1000)
+					}
+					catch (e : InterruptedException)
+					{
+						interrupted = true
+					}
+			}
+		}
+		
+		var interrupted = false
+	}
 }
