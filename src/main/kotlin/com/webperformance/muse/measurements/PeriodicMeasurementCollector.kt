@@ -7,7 +7,8 @@ import org.musetest.core.plugins.GenericConfigurablePlugin
 import org.musetest.core.suite.TestSuiteExecutionContext
 
 /**
- * Collects average step duration metrics for all steps (in aggregate).
+ * A TestSuitePlugin that looks for MeasurementProducers in the context, collects measurements from them, and sends them
+ * to MeasurementConsumers in the context. Periodically.
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
@@ -64,7 +65,7 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 				else
 					try
 					{
-						Thread.sleep(1000)
+						Thread.sleep(1000)     // TODO period should be configurable
 					}
 					catch (e : InterruptedException)
 					{

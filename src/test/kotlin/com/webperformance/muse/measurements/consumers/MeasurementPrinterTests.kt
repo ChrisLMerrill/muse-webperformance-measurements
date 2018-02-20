@@ -1,6 +1,7 @@
 package com.webperformance.muse.measurements.consumers
 
 import com.webperformance.muse.measurements.Measurement
+import com.webperformance.muse.measurements.containers.SingletonMeasurements
 import org.junit.Assert
 import org.junit.Test
 import java.io.ByteArrayOutputStream
@@ -12,7 +13,7 @@ class MeasurementPrinterTests
 	fun plainValue()
 	{
 		val m = Measurement(123)
-		printer.acceptMeasurement(m)
+		printer.acceptMeasurements(SingletonMeasurements(m))
 		
 		val result = outstream.toString()
 		Assert.assertTrue(result.contains("123"))
@@ -23,7 +24,7 @@ class MeasurementPrinterTests
 	{
 		val m = Measurement(123)
 		m.metadata["a1"] = "v1"
-		printer.acceptMeasurement(m)
+		printer.acceptMeasurements(SingletonMeasurements(m))
 		
 		val result = outstream.toString()
 		Assert.assertTrue(result.contains("123"))
@@ -37,7 +38,7 @@ class MeasurementPrinterTests
 		val m = Measurement(123)
 		m.metadata["a1"] = "v1"
 		m.metadata["a2"] = "v2"
-		printer.acceptMeasurement(m)
+		printer.acceptMeasurements(SingletonMeasurements(m))
 		
 		val result = outstream.toString()
 		Assert.assertTrue(result.contains("123"))
@@ -49,5 +50,5 @@ class MeasurementPrinterTests
 	
 	val outstream = ByteArrayOutputStream()
 	val printstream = PrintStream(outstream)
-	val printer = MeasurementPrinter(printstream)
+	val printer = MeasurementsPrinter(printstream)
 }
