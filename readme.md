@@ -23,7 +23,7 @@ none
 ### Example configuration file
 
     {
-    "type" : "context-initializers",
+    "type" : "_context-initializers",
     "applyToTestCondition" : 
 		{
     	"value" : true,
@@ -61,7 +61,7 @@ Compares the duration of steps to a performance goal and adds a failure to the t
 ### Example configuration file
 
     {
-      "type" : "context-initializers",
+      "type" : "_context-initializers",
       "applyToTestCondition" : {
         "value" : true,
         "type" : "boolean"

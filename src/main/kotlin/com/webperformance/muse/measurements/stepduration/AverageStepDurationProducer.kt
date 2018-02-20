@@ -97,7 +97,10 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 		
 		if (count == 0L)
 			return EmptyMeasurements()
-		return SingletonMeasurements(Measurement(total / count))
+		val measurement = Measurement(total / count)
+		measurement.addMetadata("metric", "avg-dur")				// TODO create metrics
+		measurement.addMetadata("subject", "all-steps-in-suite")  // TODO create subjects
+		return SingletonMeasurements(measurement)
 	}
 	
 	@Synchronized

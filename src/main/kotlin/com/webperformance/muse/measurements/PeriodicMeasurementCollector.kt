@@ -23,29 +23,46 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 	{
 		if (!(context is TestSuiteExecutionContext))
 			return
-
-		for (plugin in context.plugins)
-			if (plugin is MeasurementsProducer)
-				producers.add(plugin)
 		
+		_context = context
 		context.addEventListener({ event ->
 			run {
-				if (StartSuiteEventType.TYPE_ID.equals(event.typeId) && (producers.size > 0))
+				if (StartSuiteEventType.TYPE_ID.equals(event.typeId))
 				{
-					val new_thread = Thread(collector)
-					thread = new_thread
+					val new_thread = Thread(_collector)
+					_thread = new_thread
 					new_thread.start()
 				}
 				else if (EndSuiteEventType.TYPE_ID.equals(event.typeId))
-					thread?.interrupt()
+					_thread?.interrupt()
 			}
 		}
 		)
 	}
 	
-	private val producers = HashSet<MeasurementsProducer>()
-	private val collector = Collector()
-	private var thread : Thread? = null
+	private fun findProducers() : Set<MeasurementsProducer>
+	{
+		if (_producers.isEmpty())
+			for (plugin in _context.plugins)
+				if (plugin is MeasurementsProducer)
+					_producers.add(plugin)
+		return _producers
+	}
+	
+	private fun findConsumers() : Set<MeasurementsConsumer>
+	{
+		if (_consumers.isEmpty())
+			for (plugin in _context.plugins)
+				if (plugin is MeasurementsConsumer)
+					_consumers.add(plugin)
+		return _consumers
+	}
+	
+	private val _producers = HashSet<MeasurementsProducer>()
+	private val _consumers = HashSet<MeasurementsConsumer>()
+	private val _collector = Collector()
+	private lateinit var _context: TestSuiteExecutionContext
+	private var _thread: Thread? = null
 	
 	
 	inner class Collector : Runnable
@@ -55,11 +72,14 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 			var done = false
 			while (!done)
 			{
-				for (producer in producers)
-				{
-					for (measurement in producer.getMeasurements().iterator())
-						println("collected measurement: ${measurement}")  // TODO send it somewhere
-				}
+				val measurements = HashSet<Measurements>()
+				for (producer in findProducers())
+					measurements.add(producer.getMeasurements())
+
+				for (consumer in findConsumers())
+					for (each in measurements)
+						consumer.acceptMeasurements(each)
+				
 				if (interrupted)
 					done = true
 				else
