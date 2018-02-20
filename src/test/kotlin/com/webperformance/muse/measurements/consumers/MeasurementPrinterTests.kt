@@ -3,6 +3,7 @@ package com.webperformance.muse.measurements.consumers
 import com.webperformance.muse.measurements.Measurement
 import com.webperformance.muse.measurements.containers.SingletonMeasurements
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -48,7 +49,13 @@ class MeasurementPrinterTests
 		Assert.assertTrue(result.contains("v2"))
 	}
 	
+	@Before
+	fun setup()
+	{
+		printer.setStream(printstream)
+	}
+	
 	val outstream = ByteArrayOutputStream()
 	val printstream = PrintStream(outstream)
-	val printer = MeasurementsPrinter(printstream)
+	val printer = MeasurementsPrinterConfiguration().createPlugin()
 }
