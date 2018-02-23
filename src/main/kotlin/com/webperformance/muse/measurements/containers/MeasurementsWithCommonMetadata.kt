@@ -3,7 +3,7 @@ package com.webperformance.muse.measurements.containers
 import com.webperformance.muse.measurements.Measurement
 import com.webperformance.muse.measurements.Measurements
 
-class MeasurementsWithCommonMetadata(val metadata : MutableMap<String, Any> = mutableMapOf()) : Measurements
+data class MeasurementsWithCommonMetadata(val metadata : MutableMap<String, Any> = mutableMapOf()) : Measurements
 {
 	val measurements = mutableListOf<Measurement>()
 	
