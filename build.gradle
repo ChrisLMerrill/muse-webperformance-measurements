@@ -11,12 +11,12 @@ version = 0.1
 group = 'com.webperformance.muse'
 
 dependencies {
-    compile 'org.musetest:muse-core:0.11'
+    compile 'org.musetest:muse-core:0.12'
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"
     
-    testCompile 'org.musetest:muse-commandline:0.11'  // only needed for manual testing
+    testCompile 'org.musetest:muse-commandline:0.12'  // only needed for manual testing
     testCompile 'junit:junit:4.12'
 }
 

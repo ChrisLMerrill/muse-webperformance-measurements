@@ -1,19 +1,13 @@
 package com.webperformance.muse.measurements.stepduration
 
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.musetest.core.MuseEvent
-import org.musetest.core.events.EndStepEventType
-import org.musetest.core.events.StartStepEventType
-import org.musetest.core.mocks.MockSteppedTestExecutionContext
-import org.musetest.core.project.SimpleProject
-import org.musetest.core.step.BasicStepExecutionResult
-import org.musetest.core.step.StepConfiguration
-import org.musetest.core.step.StepExecutionStatus
-import org.musetest.core.steptest.SteppedTest
-import org.musetest.core.suite.DefaultTestSuiteExecutionContext
-import org.musetest.core.suite.SimpleTestSuite
+import org.junit.*
+import org.musetest.core.*
+import org.musetest.core.context.*
+import org.musetest.core.events.*
+import org.musetest.core.project.*
+import org.musetest.core.step.*
+import org.musetest.core.steptest.*
+import org.musetest.core.suite.*
 
 class AverageStepDurationProducerTests
 {
@@ -67,21 +61,22 @@ class AverageStepDurationProducerTests
 		step_config.addTag("measure")
 		step_config.setMetadataField(StepConfiguration.META_ID, 9L)
 		test = SteppedTest(step_config)
-		context = MockSteppedTestExecutionContext(test)
+		val suite_context = DefaultTestSuiteExecutionContext(SimpleProject(), SimpleTestSuite())
+		context = DefaultSteppedTestExecutionContext(suite_context, test)
 		createEvents(1000L)
 
 		producer = AverageStepDurationProducerConfiguration.AverageStepDurationProducerType().create().createPlugin()
-		val suite_context = DefaultTestSuiteExecutionContext(SimpleProject(), SimpleTestSuite())
 		producer.conditionallyAddToContext(suite_context, false)
 		suite_context.initializePlugins()
-		producer.conditionallyAddToContext(context, false)
+		context.addPlugin(producer)
 		context.initializePlugins()
 	}
 	
 	private fun createEvents(duration: Long, step: StepConfiguration = step_config)
 	{
-		start_event = StartStepEventType.create(step, context)
-		end_event = EndStepEventType.create(step, context, BasicStepExecutionResult(StepExecutionStatus.COMPLETE))
+		val step_context = SingleStepExecutionContext(context, step, false)
+		start_event = StartStepEventType.create(step, step_context)
+		end_event = EndStepEventType.create(step, step_context, BasicStepExecutionResult(StepExecutionStatus.COMPLETE))
 		end_event.timestampNanos = start_event.timestampNanos + (duration * 1000000)
 	}
 	
@@ -89,7 +84,7 @@ class AverageStepDurationProducerTests
 	private lateinit var step_config : StepConfiguration
 	private lateinit var start_event : MuseEvent
 	private lateinit var end_event : MuseEvent
-	private lateinit var context : MockSteppedTestExecutionContext
+	private lateinit var context : DefaultSteppedTestExecutionContext
 	private lateinit var test : SteppedTest
 	private lateinit var producer : AverageStepDurationProducer
 }

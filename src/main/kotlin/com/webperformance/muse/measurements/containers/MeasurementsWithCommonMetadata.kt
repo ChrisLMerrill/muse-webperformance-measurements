@@ -1,11 +1,16 @@
 package com.webperformance.muse.measurements.containers
 
-import com.webperformance.muse.measurements.Measurement
-import com.webperformance.muse.measurements.Measurements
+import com.webperformance.muse.measurements.*
 
 data class MeasurementsWithCommonMetadata(val metadata : MutableMap<String, Any> = mutableMapOf()) : Measurements
 {
 	val measurements = mutableListOf<Measurement>()
+	
+	constructor(measurement: Measurement) : this()
+	{
+		addMeasurement(measurement)
+	}
+	
 	
 	fun addMeasurement(measurement: Measurement)
 	{

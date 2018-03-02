@@ -1,24 +1,15 @@
 package com.webperformance.muse.measurements.stepduration
 
-import com.webperformance.muse.measurements.Measurement
-import com.webperformance.muse.measurements.Measurements
-import com.webperformance.muse.measurements.MeasurementsProducer
-import com.webperformance.muse.measurements.containers.EmptyMeasurements
-import com.webperformance.muse.measurements.containers.SingletonMeasurements
-import org.musetest.core.MuseEvent
-import org.musetest.core.MuseEventListener
-import org.musetest.core.MuseExecutionContext
-import org.musetest.core.context.SteppedTestExecutionContext
-import org.musetest.core.events.EndStepEventType
-import org.musetest.core.events.EndTestEventType
-import org.musetest.core.events.StartStepEventType
-import org.musetest.core.events.StepEventType
-import org.musetest.core.plugins.GenericConfigurablePlugin
-import org.musetest.core.plugins.MusePlugin
-import org.musetest.core.step.StepConfiguration
-import org.musetest.core.suite.TestSuiteExecutionContext
-import org.musetest.core.values.ValueSourceConfiguration
-import org.slf4j.LoggerFactory
+import com.webperformance.muse.measurements.*
+import com.webperformance.muse.measurements.containers.*
+import org.musetest.core.*
+import org.musetest.core.context.*
+import org.musetest.core.events.*
+import org.musetest.core.plugins.*
+import org.musetest.core.step.*
+import org.musetest.core.suite.*
+import org.musetest.core.values.*
+import org.slf4j.*
 import java.util.*
 
 /**
@@ -56,11 +47,6 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 			context.addPlugin(this)
 			return true
 		}
-		else if (context is SteppedTestExecutionContext && initialized)
-		{
-			context.addPlugin(TestStepDurationCollector())
-			return true
-		}
 		return false
 	}
 	
@@ -71,6 +57,12 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
+		if (context is SteppedTestExecutionContext && initialized)
+		{
+			TestStepDurationCollector(context)
+			return
+		}
+		
 		if (!(context is TestSuiteExecutionContext))
 			return
 		
@@ -96,11 +88,11 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 		counts.clear()
 		
 		if (count == 0L)
-			return EmptyMeasurements()
+			return MeasurementsWithCommonMetadata()
 		val measurement = Measurement(total / count)
 		measurement.addMetadata("metric", "avg-dur")				// TODO create metrics
 		measurement.addMetadata("subject", "all-steps-in-suite")  // TODO create subjects
-		return SingletonMeasurements(measurement)
+		return MeasurementsWithCommonMetadata(measurement)
 	}
 	
 	@Synchronized
@@ -123,23 +115,12 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 	
 	private val LOG = LoggerFactory.getLogger(AverageStepDurationProducer::class.java)
 	
-	inner class TestStepDurationCollector : MusePlugin, MuseEventListener
+	inner class TestStepDurationCollector(val context: SteppedTestExecutionContext) : MuseEventListener
 	{
-		lateinit var context : SteppedTestExecutionContext
 		private val startTime = HashMap<Long, Long>()
-		
-		override fun conditionallyAddToContext(context: MuseExecutionContext?, automatic: Boolean): Boolean
-		{
-			return false
-		}
-		
-		override fun initialize(the_context: MuseExecutionContext)
-		{
-			if (the_context is SteppedTestExecutionContext)
-			{
-				context = the_context
-				context.addEventListener(this)
-			}
+
+		init {
+			context.addEventListener(this)
 		}
 		
 		override fun eventRaised(event: MuseEvent)
@@ -184,8 +165,7 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 		
 		private fun findStep(id: Long): StepConfiguration?
 		{
-			return context.stepLocator?.findStep(id)
+			return context.stepLocator.findStep(id)
 		}
-		
 	}
 }

@@ -53,7 +53,7 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 		return true
 	}
 	
-	override fun applyToContextType(context: MuseExecutionContext?): Boolean
+	override fun applyToContextType(context: MuseExecutionContext): Boolean
 	{
 		return context is TestSuiteExecutionContext || context is SteppedTestExecutionContext
 	}
