@@ -19,7 +19,8 @@ import org.musetest.core.values.descriptor.SubsourceDescriptor
 @MuseTypeId("periodic-measurement-collector")
 @MuseSubsourceDescriptors(
 	MuseSubsourceDescriptor(displayName = "Apply automatically?", description = "If this source resolves to true, this plugin configuration will be automatically applied to tests", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.AUTO_APPLY_PARAM),
-	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.APPLY_CONDITION_PARAM)
+	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.APPLY_CONDITION_PARAM),
+	MuseSubsourceDescriptor(displayName = "Sample period", description = "Duration of measurement period (in milliseconds). Default is 10 seconds.", type = SubsourceDescriptor.Type.Named, name = PeriodicMeasurementCollectorConfiguration.PERIOD_PARAM_NAME, optional =  true)
 )
 class PeriodicMeasurementCollectorConfiguration : GenericResourceConfiguration(), PluginConfiguration
 {
@@ -52,7 +53,7 @@ class PeriodicMeasurementCollectorConfiguration : GenericResourceConfiguration()
 
 	companion object
 	{
-
+		const val PERIOD_PARAM_NAME = "period"
 		val TYPE_ID = PeriodicMeasurementCollectorConfiguration::class.java.getAnnotation(MuseTypeId::class.java).value
 	}
 }

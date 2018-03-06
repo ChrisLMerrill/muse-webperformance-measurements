@@ -1,10 +1,9 @@
 package com.webperformance.muse.measurements
 
-import org.musetest.core.MuseExecutionContext
-import org.musetest.core.events.EndSuiteEventType
-import org.musetest.core.events.StartSuiteEventType
-import org.musetest.core.plugins.GenericConfigurablePlugin
-import org.musetest.core.suite.TestSuiteExecutionContext
+import org.musetest.core.*
+import org.musetest.core.events.*
+import org.musetest.core.plugins.*
+import org.musetest.core.suite.*
 
 /**
  * A TestSuitePlugin that looks for MeasurementProducers in the context, collects measurements from them, and sends them
@@ -12,7 +11,7 @@ import org.musetest.core.suite.TestSuiteExecutionContext
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
-class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorConfiguration) : GenericConfigurablePlugin(configuration)
+class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollectorConfiguration) : GenericConfigurablePlugin(configuration)
 {
 	override fun applyToContextType(context: MuseExecutionContext?): Boolean
 	{
@@ -21,6 +20,7 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
+		setupPeriod(context)
 		if (!(context is TestSuiteExecutionContext))
 			return
 		
@@ -38,6 +38,22 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 			}
 		}
 		)
+	}
+	
+	private fun setupPeriod(context : MuseExecutionContext)
+	{
+		if (_period == 0L)
+		{
+			val period_config = configuration.parameters.get(PeriodicMeasurementCollectorConfiguration.PERIOD_PARAM_NAME)
+			if (period_config != null)
+			{
+				val configured_period = period_config.createSource(context.project).resolveValue(context)
+				if (configured_period != null && configured_period is Long)
+					_period = configured_period;
+			}
+			if (_period == 0L)
+				_period = 10000L
+		}
 	}
 	
 	private fun findProducers() : Set<MeasurementsProducer>
@@ -63,6 +79,7 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 	private val _collector = Collector()
 	private lateinit var _context: TestSuiteExecutionContext
 	private var _thread: Thread? = null
+	private var _period = 0L
 	
 	
 	inner class Collector : Runnable
@@ -85,7 +102,7 @@ class PeriodicMeasurementCollector(configuration: PeriodicMeasurementCollectorCo
 				else
 					try
 					{
-						Thread.sleep(1000)     // TODO period should be configurable
+						Thread.sleep(_period)
 					}
 					catch (e : InterruptedException)
 					{
