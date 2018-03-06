@@ -17,7 +17,7 @@ class MeasurementsToLocalFilesystem(configuration: GenericResourceConfiguration)
 	override fun acceptMeasurements(measurements: Measurements)
 	{
 		if (_folder == null || _mapper == null)
-			return;
+			return
 		
 		val file = File(_folder, "ms" + _index++ + ".json")
 		_mapper?.writerWithDefaultPrettyPrinter()?.writeValue(file, measurements)
@@ -40,18 +40,7 @@ class MeasurementsToLocalFilesystem(configuration: GenericResourceConfiguration)
 		return context is TestSuiteExecutionContext
 	}
 	
-	private fun getStream() : PrintStream
-		{
-		return _stream
-		}
-	
-	fun setStream(stream: PrintStream)
-	{
-		_stream = stream;
-	}
-	
 	var _index = 0
-	var _stream = System.out
 	var _folder : File? = null
 	var _mapper : ObjectMapper? = null
 }
