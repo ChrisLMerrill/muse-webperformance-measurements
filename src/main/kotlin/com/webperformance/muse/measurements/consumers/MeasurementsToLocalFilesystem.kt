@@ -19,24 +19,8 @@ class MeasurementsToLocalFilesystem(configuration: GenericResourceConfiguration)
 		if (_folder == null || _mapper == null)
 			return;
 		
-/* print to console
-		for (measurement in measurements.iterator())
-		{
-			val builder = StringBuilder()
-			for (name in measurement.metadata.keys)
-			{
-				if (builder.length > 0)
-					builder.append(", ")
-				builder.append(name)
-				builder.append("=")
-				builder.append(measurement.metadata[name])
-			}
-			getStream().println("${measurement.value} : ${builder}")
-		}
-*/
-
 		val file = File(_folder, "ms" + _index++ + ".json")
-		_mapper?.writeValue(file, measurements)
+		_mapper?.writerWithDefaultPrettyPrinter()?.writeValue(file, measurements)
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
