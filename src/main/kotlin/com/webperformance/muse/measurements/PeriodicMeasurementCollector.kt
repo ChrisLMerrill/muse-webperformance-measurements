@@ -93,6 +93,8 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 				for (producer in findProducers())
 					measurements.add(producer.getMeasurements())
 
+				// TODO add sequence# and timestamp to measurements
+				
 				for (consumer in findConsumers())
 					for (each in measurements)
 						consumer.acceptMeasurements(each)

@@ -91,7 +91,7 @@ class AverageStepDurationProducer(configuration: AverageStepDurationProducerConf
 			return MeasurementsWithCommonMetadata()
 		val measurement = Measurement(total / count)
 		measurement.addMetadata("metric", "avg-dur")				// TODO create metrics
-		measurement.addMetadata("subject", "all-steps-in-suite")  // TODO create subjects
+		measurement.addMetadata("subject", "all-steps")  // TODO create subjects
 		return MeasurementsWithCommonMetadata(measurement)
 	}
 	
