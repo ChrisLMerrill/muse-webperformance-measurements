@@ -8,6 +8,8 @@ class MeasurementsAccumulator
 	
 	fun add(new: Measurements)
 	{
+		if (new is EmptyMeasurements)
+			return
 		_measurements.add(new)
 	}
 	
