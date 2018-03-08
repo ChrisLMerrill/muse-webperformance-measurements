@@ -79,6 +79,32 @@ class MeasurementsToCsvFilesTests
 		checkFile("subject2.csv", true)
 	}
 	
+	@Test
+	fun metricMissingFromOneMeasurements()
+	{
+		_plugin.acceptMeasurements(createMeasurements(1, 11, "count", "duration", "subject1"))
+		_plugin.acceptMeasurements(createMeasurements(2, "count", "subject1"))
+		_plugin.acceptMeasurements(createMeasurements(3, 33, "count", "duration", "subject1"))
+		
+		_plugin.closeFiles()
+		
+		val reader = CSVReader(FileReader(File(_location.baseFolder, "subject1.csv")))
+		reader.readNext() // skip header
+		
+		val values1 = reader.readNext()
+		Assert.assertEquals("0", values1[0])
+		Assert.assertEquals("1", values1[1])
+		Assert.assertEquals("11", values1[2])
+		val values2 = reader.readNext()
+		Assert.assertEquals("1", values2[0])
+		Assert.assertEquals("2", values2[1])
+		Assert.assertEquals("", values2[2])
+		val values3 = reader.readNext()
+		Assert.assertEquals("2", values3[0])
+		Assert.assertEquals("3", values3[1])
+		Assert.assertEquals("33", values3[2])
+	}
+	
 	private fun checkFile(name: String, second: Boolean)
 	{
 		// check the file contents

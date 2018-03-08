@@ -112,9 +112,15 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 			val list = mutableListOf<String>()
 			list.add(sequence.toString())
 			for (metric in metrics)
-				list.add(values[metric].toString())
+			{
+				if (values[metric] == null)
+					list.add("")
+				else
+					list.add(values[metric].toString())
+			}
 			
 			writer.writeNext(list.toTypedArray())
+			values.clear()
 		}
 		
 		private fun writeHeader()
