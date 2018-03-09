@@ -1,6 +1,5 @@
 package com.webperformance.muse.measurements.steps
 
-import com.webperformance.muse.measurements.containers.*
 import org.junit.*
 import org.musetest.core.*
 import org.musetest.core.context.*
@@ -15,7 +14,7 @@ class AllStepsAverageDurationMeasurementProducerTests
 	@Test
 	fun zeroDurations()
 	{
-		Assert.assertTrue(producer.getMeasurements() is EmptyMeasurements)
+		Assert.assertNull(producer.getMeasurements().iterator().next().value)
 	}
 	
 	@Test

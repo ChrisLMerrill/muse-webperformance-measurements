@@ -42,9 +42,11 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 	
 	override fun getMeasurements(): Measurements
 	{
+		var measurement : Measurement
 		if (count == 0L)
-			return EmptyMeasurements()
-		val measurement = Measurement(total / count)
+			measurement = Measurement(null)
+		else
+			measurement = Measurement(total / count)
 		measurement.addMetadata("metric", "avg-dur")
 		measurement.addMetadata("subject", "all-steps")
 		

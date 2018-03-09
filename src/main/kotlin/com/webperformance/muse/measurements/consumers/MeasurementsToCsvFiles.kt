@@ -17,7 +17,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 {
 	override fun acceptMeasurements(measurements: Measurements)
 	{
-		if (_folder == null || _mapper == null)
+		if (_mapper == null)
 			return
 		
 		for (measurement in measurements.iterator())
@@ -98,11 +98,12 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 			writer = CSVWriter(file_writer)
 		}
 		
-		fun addValue(name : String, value : Any)
+		fun addValue(name : String, value : Any?)
 		{
 			if (!metrics.contains(name))
 				metrics.add(name)
-			values.put(name, value)
+			if (value != null)
+				values.put(name, value)
 		}
 		
 		fun writeValues(sequence : Number)
