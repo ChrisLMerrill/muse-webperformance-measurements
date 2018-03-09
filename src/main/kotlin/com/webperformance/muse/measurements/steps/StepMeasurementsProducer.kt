@@ -61,6 +61,8 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 		step_tag = configuration.getStepTag(context)
 		if (configuration.calculateOverallAverageDuration(context))
 			producers.add(AllStepsAverageDurationMeasurementProducer())
+		if (configuration.countTotalSteps(context))
+			producers.add(StepCountMeasurementProducer())
 	}
 	
 	override fun getMeasurements(): Measurements

@@ -17,7 +17,8 @@ import org.musetest.core.values.descriptor.*
 	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.APPLY_CONDITION_PARAM),
 	MuseSubsourceDescriptor(displayName = "Step tag", description = "If this parameter is present, only collect measurements on steps tagged with the value of this parameter", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.STEP_TAG_PARAM, optional = true),
 	MuseSubsourceDescriptor(displayName = "Overall Average", description = "If true, compute the overall average duration of all measured steps", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.OVERALL_AVG_PARAM, optional = true),
-	MuseSubsourceDescriptor(displayName = "Multiple Averages", description = "If true, compute average durations for each individual step (in addition to the overall average)", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.MULTIPLE_AVGS_PARAM, optional = true)
+	MuseSubsourceDescriptor(displayName = "Completed Steps", description = "If true, count total steps completed", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.OVERALL_COMPLETED_PARAM, optional = true)
+//	MuseSubsourceDescriptor(displayName = "Multiple Averages", description = "If true, compute average durations for each individual step (in addition to the overall average)", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.MULTIPLE_AVGS_PARAM, optional = true)
 )
 class StepMeasurementsProducerConfiguration : GenericResourceConfiguration(), PluginConfiguration
 {
@@ -31,11 +32,21 @@ class StepMeasurementsProducerConfiguration : GenericResourceConfiguration(), Pl
 		return StepMeasurementsProducer(this)
 	}
 
+	fun countTotalSteps(context: MuseExecutionContext): Boolean
+	{
+		return isParamTrue(context, OVERALL_COMPLETED_PARAM)
+	}
+	
 	fun calculateOverallAverageDuration(context: MuseExecutionContext): Boolean
 	{
-		if (parameters != null && parameters.containsKey(OVERALL_AVG_PARAM))
+		return isParamTrue(context, OVERALL_AVG_PARAM)
+	}
+
+	fun isParamTrue(context: MuseExecutionContext, param: String): Boolean
+	{
+		if (parameters != null && parameters.containsKey(param))
 		{
-			val config = parameters[OVERALL_AVG_PARAM]
+			val config = parameters[param]
 			if (config != null)
 			{
 				val source = config.createSource(context.project)
@@ -48,7 +59,7 @@ class StepMeasurementsProducerConfiguration : GenericResourceConfiguration(), Pl
 		}
 		return false
 	}
-
+	
 	@JsonIgnore
 	fun getStepTag(context: MuseExecutionContext): String?
 	{
@@ -87,6 +98,7 @@ class StepMeasurementsProducerConfiguration : GenericResourceConfiguration(), Pl
 		val TYPE_ID = StepMeasurementsProducerConfiguration::class.java.getAnnotation(MuseTypeId::class.java).value
 		const val STEP_TAG_PARAM = "steptag"
 		const val OVERALL_AVG_PARAM = "overall-avg"
+		const val OVERALL_COMPLETED_PARAM = "ovarall-completed"
 		const val MULTIPLE_AVGS_PARAM = "multiple-avgs"
 	}
 	

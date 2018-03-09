@@ -121,6 +121,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 			}
 			
 			writer.writeNext(list.toTypedArray())
+			writer.flush()
 			values.clear()
 		}
 		
