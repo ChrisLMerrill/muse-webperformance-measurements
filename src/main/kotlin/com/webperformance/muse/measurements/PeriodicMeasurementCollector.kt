@@ -1,9 +1,11 @@
 package com.webperformance.muse.measurements
 
+import com.webperformance.muse.measurements.containers.*
 import org.musetest.core.*
 import org.musetest.core.events.*
 import org.musetest.core.plugins.*
 import org.musetest.core.suite.*
+import java.util.*
 
 /**
  * A TestSuitePlugin that looks for MeasurementProducers in the context, collects measurements from them, and sends them
@@ -20,9 +22,9 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
-		setupPeriod(context)
 		if (!(context is TestSuiteExecutionContext))
 			return
+		setupPeriod(context)
 		
 		_context = context
 		context.addEventListener({ event ->
@@ -34,7 +36,9 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 					new_thread.start()
 				}
 				else if (EndSuiteEventType.TYPE_ID.equals(event.typeId))
-					_thread?.interrupt()
+				{
+					_thread?.interrupt()  // TODO just set a flag finish the sample period normally...instead of interrupting?
+				}
 			}
 		}
 		)
@@ -87,17 +91,28 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 		override fun run()
 		{
 			var done = false
+			var index = 0
 			while (!done)
 			{
+				val sample_time = Measurement(System.currentTimeMillis())
+				sample_time.addMetadata("subject", "samples")
+				sample_time.addMetadata("metric", "timestamp")
 				val measurements = HashSet<Measurements>()
 				for (producer in findProducers())
-					measurements.add(producer.getMeasurements())
+				{
+					val msmts = producer.getMeasurements()
+					measurements.add(msmts)
+				}
 
-				// TODO add sequence# and timestamp to measurements
+				// integrate all measurements collections into a measurements collection. Add sequence #
+				val sample = MeasurementsWithCommonMetadata(sample_time)
+				sample.metadata.put("sequence", index)
+				for (each_measurements in measurements)
+					for (each_one in each_measurements.iterator())
+						sample.addMeasurement(each_one)
 				
 				for (consumer in findConsumers())
-					for (each in measurements)
-						consumer.acceptMeasurements(each)
+					consumer.acceptMeasurements(sample)
 				
 				if (interrupted)
 					done = true
@@ -110,6 +125,8 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 					{
 						interrupted = true
 					}
+				
+				index++;
 			}
 		}
 		

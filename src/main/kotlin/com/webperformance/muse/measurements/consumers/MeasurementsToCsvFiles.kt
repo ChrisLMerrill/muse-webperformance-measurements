@@ -34,6 +34,8 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 		for (writer in _writers.values)
 			writer.writeValues(_index)
 		_index++
+		if (_finished)
+			closeFiles()
 	}
 	
 	private fun getWriter(folder : File, subject : String) : SubjectWriter
@@ -62,7 +64,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 			run {
 				if (e.typeId == EndSuiteEventType.TYPE_ID)
 				{
-					closeFiles()
+					_finished = true
 				}
 			}
 		}
@@ -85,8 +87,9 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 	lateinit var _folder : File
 	var _mapper : ObjectMapper? = null
 	val _writers = HashMap<String, SubjectWriter>()
+	var _finished = false
 	
-	class SubjectWriter(folder : File, id : String)
+	class SubjectWriter(folder : File, val id : String)
 	{
 		private val writer : CSVWriter
 		private val file_writer: FileWriter
@@ -109,7 +112,6 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 		fun writeValues(sequence : Number)
 		{
 			writeHeader()
-			
 			val list = mutableListOf<String>()
 			list.add(sequence.toString())
 			for (metric in metrics)
