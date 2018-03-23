@@ -33,7 +33,7 @@ class MeasurementsToLocalFilesystemConfiguration : GenericResourceConfiguration(
 		return MeasurementsToLocalFilesystem(this)
 	}
 
-	class MeasurementsToLocalFilesystemType : ResourceSubtype(TYPE_ID, "Store Measurements to local filsystem", MeasurementsToLocalFilesystemConfiguration::class.java, PluginConfiguration.PluginConfigurationResourceType())
+	class MeasurementsToLocalFilesystemType : ResourceSubtype(TYPE_ID, "Store Measurements to Local Filesystem", MeasurementsToLocalFilesystemConfiguration::class.java, PluginConfiguration.PluginConfigurationResourceType())
 	{
 
 		override fun create(): MeasurementsToLocalFilesystemConfiguration
