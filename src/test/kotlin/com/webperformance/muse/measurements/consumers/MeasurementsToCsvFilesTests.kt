@@ -167,7 +167,7 @@ class MeasurementsToCsvFilesTests
 			return _folder
 		}
 		
-		override fun getTestFolder(test: MuseTest?): File
+		override fun getTestFolder(context: TestExecutionContext): File
 		{
 			return _folder
 		}
