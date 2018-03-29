@@ -23,7 +23,7 @@ import org.musetest.core.values.descriptor.SubsourceDescriptor
 )
 class MeasurementsToLocalFilesystemConfiguration : GenericResourceConfiguration(), PluginConfiguration
 {
-	override fun getType(): ResourceType?
+	override fun getType(): ResourceType
 	{
 		return MeasurementsToLocalFilesystemType()
 	}
