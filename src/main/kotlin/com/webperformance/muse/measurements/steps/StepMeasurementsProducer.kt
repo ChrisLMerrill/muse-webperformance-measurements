@@ -60,11 +60,18 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 
 		step_tag = configuration.getStepTag(context)
 		if (configuration.calculateOverallAverageDuration(context))
-			producers.add(AllStepsAverageDurationMeasurementProducer())
-		if (configuration.countTotalSteps(context))
+		{
+			val avg_producer = AllStepsAverageDurationMeasurementProducer()
+			if (configuration.countTotalSteps(context))
+				avg_producer.produceStepCounts(true)
+			producers.add(avg_producer)
+		}
+		
+		if (configuration.countTotalSteps(context) && !configuration.calculateOverallAverageDuration(context))
 			producers.add(StepCountMeasurementProducer())
 	}
 	
+	@Synchronized
 	override fun getMeasurements(): Measurements
 	{
 		val accumulator = MeasurementsAccumulator()
@@ -73,10 +80,11 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 		return accumulator.getAll()
 	}
 	
-	private fun processEvent(event: MuseEvent, step: StepConfiguration)
+	@Synchronized
+	private fun processEvent(event: MuseEvent, step: StepConfiguration, test_id: String)
 	{
 	    for (producer in producers)
-			producer.processEvent(event, step)
+			producer.processEvent(event, step, test_id)
 	}
 	
 	inner class TestEventListener(val context: SteppedTestExecutionContext) : MuseEventListener
@@ -95,7 +103,7 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 				val step = context.stepLocator.findStep(StepEventType.getStepId(event))
 				if (step == null || (step_tag != null && !step.hasTag(step_tag)))
 					return
-				processEvent(event, step)
+				processEvent(event, step, context.hashCode().toString())
 			}
 			else if (EndTestEventType.TYPE_ID == event.typeId)
 				context.removeEventListener(this)

@@ -20,8 +20,8 @@ class AllStepsAverageDurationMeasurementProducerTests
 	@Test
 	fun averageOfSingleDuration()
 	{
-		producer.processEvent(start_event, step_config)
-		producer.processEvent(end_event, step_config)
+		producer.processEvent(start_event, step_config, "id1")
+		producer.processEvent(end_event, step_config, "id1")
 		
 		val measurement = producer.getMeasurements().iterator().next()
 		
@@ -31,12 +31,12 @@ class AllStepsAverageDurationMeasurementProducerTests
 	@Test
 	fun averageOfTwoDurations()
 	{
-		producer.processEvent(start_event, step_config)
-		producer.processEvent(end_event, step_config)
+		producer.processEvent(start_event, step_config, "id1")
+		producer.processEvent(end_event, step_config, "id1")
 
 		createEvents(600L)
-		producer.processEvent(start_event, step_config)
-		producer.processEvent(end_event, step_config)
+		producer.processEvent(start_event, step_config, "id1")
+		producer.processEvent(end_event, step_config, "id1")
 
 		val measurement = producer.getMeasurements().iterator().next()
 		
@@ -46,18 +46,40 @@ class AllStepsAverageDurationMeasurementProducerTests
 	@Test
 	fun twoMeasurements()
 	{
-		producer.processEvent(start_event, step_config)
-		producer.processEvent(end_event, step_config)
+		producer.processEvent(start_event, step_config, "id1")
+		producer.processEvent(end_event, step_config, "id1")
 
 		val measurement1 = producer.getMeasurements().iterator().next()
 		Assert.assertEquals(1000L, measurement1.value)
 		
 		createEvents(600L)
-		producer.processEvent(start_event, step_config)
-		producer.processEvent(end_event, step_config)
+		producer.processEvent(start_event, step_config, "id1")
+		producer.processEvent(end_event, step_config, "id1")
 
 		val measurement2 = producer.getMeasurements().iterator().next()
 		Assert.assertEquals(600L, measurement2.value)
+	}
+	
+	@Test
+	fun twoOverlappingMeasurementsOfSameStep()
+	{
+		val start_event1 = start_event
+		val end_event1 = end_event
+		createEvents(600L)
+		val start_event2 = start_event
+		val end_event2 = end_event
+		
+		producer.processEvent(start_event1, step_config, "id1")
+		producer.processEvent(start_event2, step_config, "id2")
+		producer.processEvent(end_event1, step_config, "id1")
+		
+		val measurement1 = producer.getMeasurements().iterator().next()
+		Assert.assertEquals(1000L, measurement1.value)
+		
+		producer.processEvent(end_event2, step_config, "id2")
+		val measurement2 = producer.getMeasurements().iterator().next()
+		Assert.assertEquals(600L, measurement2.value)
+		
 	}
 	
 	@Before

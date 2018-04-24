@@ -19,7 +19,6 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 	{
 		if (_mapper == null)
 			return
-		
 		for (measurement in measurements.iterator())
 		{
 			val subject = measurement.metadata["subject"]
@@ -89,7 +88,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 	val _writers = HashMap<String, SubjectWriter>()
 	var _finished = false
 	
-	class SubjectWriter(folder : File, val id : String)
+	class SubjectWriter(folder : File, id : String)
 	{
 		private val writer : CSVWriter
 		private val file_writer: FileWriter
@@ -130,7 +129,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 		private fun writeHeader()
 		{
 			if (header_written)
-				return;
+				return
 			
 			val list = mutableListOf<String>()
 			list.add("sequence")

@@ -53,7 +53,7 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 			{
 				val configured_period = period_config.createSource(context.project).resolveValue(context)
 				if (configured_period != null && configured_period is Long)
-					_period = configured_period;
+					_period = configured_period
 			}
 			if (_period == 0L)
 				_period = 10000L
@@ -126,7 +126,7 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 						interrupted = true
 					}
 				
-				index++;
+				index++
 			}
 		}
 		

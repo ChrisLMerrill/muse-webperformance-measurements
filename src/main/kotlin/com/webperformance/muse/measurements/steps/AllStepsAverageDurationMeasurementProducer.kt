@@ -10,22 +10,22 @@ import java.util.HashMap
 
 class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 {
-	override fun processEvent(event: MuseEvent, step: StepConfiguration)
+	@Synchronized
+	override fun processEvent(event: MuseEvent, step: StepConfiguration, execution_id: String)
 	{
 		if (StartStepEventType.TYPE_ID == event.typeId)
-			recordStartTime(step, event.timestampNanos)
+			recordStartTime(step, event.timestampNanos, execution_id)
 		else if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
-			recordDuration(step, event.timestampNanos)
+			recordDuration(step, event.timestampNanos, execution_id)
 	}
 	
-	@Synchronized
-	private fun recordDuration(step: StepConfiguration, end_time: Long)
+	private fun recordDuration(step: StepConfiguration, end_time: Long, execution_id: String)
 	{
-		val started: Long? = start_times.remove(step.stepId)
+		val started: Long? = start_times.remove("${execution_id}:${step.stepId}")
 		if (started == null)
 		{
-			LOG.error(String.format("End event received for step %d but no start-time was found. Ignorning.", step.stepId))
-			return;
+			LOG.error(String.format("End event received for step %s but no start-time was found. Ignorning.", "${execution_id}:${step.stepId}"))
+			return
 		}
 		
 		val duration = (end_time - started)/1000000
@@ -33,32 +33,53 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 		count ++
 	}
 
-	private fun recordStartTime(step: StepConfiguration, start_time: Long)
+	private fun recordStartTime(step: StepConfiguration, start_time: Long, execution_id: String)
 	{
-		if (start_times.containsKey(step.stepId))
-			LOG.error(String.format("start-time already recorded for step %d. Possibly the previous iteration never ended? Is this step called recursively (not supported at this time)? Overwriting the previous value.", step.stepId))
-		start_times.put(step.stepId, start_time)
+		if (start_times.containsKey("${execution_id}:${step.stepId}"))
+			LOG.error("start-time already recorded for step ${execution_id}:${step.stepId}. Possibly the previous iteration never ended? Is this step called recursively (not supported at this time)? Overwriting the previous value.")
+		start_times.put("${execution_id}:${step.stepId}", start_time)
 	}
 	
+	@Synchronized
 	override fun getMeasurements(): Measurements
 	{
-		var measurement : Measurement
+		val common_metadata = mutableMapOf<String, Any>()
+		common_metadata.put("subject", "all-steps")
+		val measurements = MeasurementsWithCommonMetadata(common_metadata)
+		
+		val avg : Measurement
 		if (count == 0L)
-			measurement = Measurement(null)
+			avg = Measurement(null)
 		else
-			measurement = Measurement(total / count)
-		measurement.addMetadata("metric", "avg-dur")
-		measurement.addMetadata("subject", "all-steps")
+			avg = Measurement(total / count)
+		avg.addMetadata("metric", "avg-dur")
+		measurements.addMeasurement(avg)
+
+		if (count_steps)
+		{
+			val count = Measurement(count)
+			count.addMetadata("metric", "completed")
+			measurements.addMeasurement(count)
+		}
 		
 		total = 0
-		count = 0
+		this.count = 0
 		
-		return SingletonMeasurements(measurement)
+		return measurements
 	}
 	
-	private val start_times = HashMap<Long, Long>()
+	fun produceStepCounts(state: Boolean)
+	{
+		count_steps = state
+	}
+
+	private val start_times = HashMap<String, Long>()
 	private var total = 0L
 	private var count = 0L
+	private var count_steps = false
 
-	private val LOG = LoggerFactory.getLogger(AllStepsAverageDurationMeasurementProducer::class.java)
+	companion object
+	{
+		val LOG = LoggerFactory.getLogger(AllStepsAverageDurationMeasurementProducer::class.java)
+	}
 }

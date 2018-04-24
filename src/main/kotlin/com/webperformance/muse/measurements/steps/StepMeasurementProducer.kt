@@ -6,5 +6,5 @@ import org.musetest.core.step.*
 
 interface StepMeasurementProducer : MeasurementsProducer
 {
-	fun processEvent(event: MuseEvent, step: StepConfiguration)
+	fun processEvent(event: MuseEvent, step: StepConfiguration, execution_id: String)
 }

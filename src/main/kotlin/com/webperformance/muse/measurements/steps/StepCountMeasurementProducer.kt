@@ -8,7 +8,7 @@ import org.musetest.core.step.*
 
 class StepCountMeasurementProducer : StepMeasurementProducer
 {
-	override fun processEvent(event: MuseEvent, step: StepConfiguration)
+	override fun processEvent(event: MuseEvent, step: StepConfiguration, execution_id: String)
 	{
 		if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
 			count++
@@ -16,7 +16,7 @@ class StepCountMeasurementProducer : StepMeasurementProducer
 	
 	override fun getMeasurements(): Measurements
 	{
-		var measurement = Measurement(count)
+		val measurement = Measurement(count)
 		measurement.addMetadata("metric", "completed")
 		measurement.addMetadata("subject", "all-steps")
 		
