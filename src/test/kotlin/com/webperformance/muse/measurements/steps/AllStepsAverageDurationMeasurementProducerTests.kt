@@ -18,10 +18,31 @@ class AllStepsAverageDurationMeasurementProducerTests
 	}
 	
 	@Test
+	fun incompleteStep()
+	{
+		producer.processEvent(start_event, step_config, "id1")
+		Assert.assertNull(producer.getMeasurements().iterator().next().value)
+	}
+	
+	@Test
 	fun averageOfSingleDuration()
 	{
 		producer.processEvent(start_event, step_config, "id1")
 		producer.processEvent(end_event, step_config, "id1")
+		
+		val measurement = producer.getMeasurements().iterator().next()
+		
+		Assert.assertEquals(1000L, measurement.value)
+	}
+	
+	@Test
+	fun averageOfSingleDurationPlusIncompleteStep()
+	{
+		producer.processEvent(start_event, step_config, "id1")
+		producer.processEvent(end_event, step_config, "id1")
+
+		createEvents(600L)
+		producer.processEvent(start_event, step_config, "id1")
 		
 		val measurement = producer.getMeasurements().iterator().next()
 		
