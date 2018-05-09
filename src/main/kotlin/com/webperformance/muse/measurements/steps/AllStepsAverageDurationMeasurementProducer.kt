@@ -21,10 +21,10 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 	
 	private fun recordDuration(step: StepConfiguration, end_time: Long, execution_id: String)
 	{
-		val started: Long? = start_times.remove("${execution_id}:${step.stepId}")
+		val started: Long? = start_times.remove("$execution_id:${step.stepId}")
 		if (started == null)
 		{
-			LOG.error(String.format("End event received for step %s but no start-time was found. Ignorning.", "${execution_id}:${step.stepId}"))
+			LOG.error(String.format("End event received for step %s but no start-time was found. Ignoring.", "$execution_id:${step.stepId}"))
 			return
 		}
 		
@@ -35,9 +35,9 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 
 	private fun recordStartTime(step: StepConfiguration, start_time: Long, execution_id: String)
 	{
-		if (start_times.containsKey("${execution_id}:${step.stepId}"))
-			LOG.error("start-time already recorded for step ${execution_id}:${step.stepId}. Possibly the previous iteration never ended? Is this step called recursively (not supported at this time)? Overwriting the previous value.")
-		start_times.put("${execution_id}:${step.stepId}", start_time)
+		if (start_times.containsKey("$execution_id:${step.stepId}"))
+			LOG.error("start-time already recorded for step $execution_id:${step.stepId}. Possibly the previous iteration never ended? Is this step called recursively (not supported at this time)? Overwriting the previous value.")
+		start_times.put("$execution_id:${step.stepId}", start_time)
 	}
 	
 	@Synchronized
