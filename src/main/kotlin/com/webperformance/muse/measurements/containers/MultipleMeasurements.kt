@@ -2,14 +2,15 @@ package com.webperformance.muse.measurements.containers
 
 import com.webperformance.muse.measurements.*
 
-class MultipleMeasurements(first: Measurements) : Measurements
+class MultipleMeasurements() : Measurements
 {
-	val list = mutableListOf<Measurements>()
-	
-	init {
+	constructor(first: Measurements) : this()
+	{
 		list.add(first)
 	}
 	
+	val list = mutableListOf<Measurements>()
+
 	fun add(more : Measurements)
 	{
 		list.add(more)

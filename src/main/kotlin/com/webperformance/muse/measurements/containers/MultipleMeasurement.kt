@@ -2,11 +2,11 @@ package com.webperformance.muse.measurements.containers
 
 import com.webperformance.muse.measurements.*
 
-class MultipleMeasurement(first: Measurement) : Measurements
+class MultipleMeasurement() : Measurements
 {
 	val list = mutableListOf<Measurement>()
 	
-	init
+	constructor(first: Measurement) : this()
 	{
 		list.add(first)
 	}
