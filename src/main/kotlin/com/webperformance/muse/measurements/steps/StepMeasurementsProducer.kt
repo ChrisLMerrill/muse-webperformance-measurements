@@ -10,7 +10,7 @@ import org.musetest.core.step.*
 import org.musetest.core.suite.*
 
 /**
- * Collects average step duration metrics for all steps (in aggregate).
+ * Collects step metrics for all steps (in aggregate).
  *
  * @author Christopher L Merrill (see LICENSE.txt for license details)
  */
