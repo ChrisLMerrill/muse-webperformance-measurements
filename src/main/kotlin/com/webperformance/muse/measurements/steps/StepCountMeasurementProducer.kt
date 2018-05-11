@@ -17,8 +17,8 @@ class StepCountMeasurementProducer : StepMeasurementProducer
 	override fun getMeasurements(): Measurements
 	{
 		val measurement = Measurement(count)
-		measurement.addMetadata("metric", "completed")
-		measurement.addMetadata("subject", "all-steps")
+		measurement.addMetadata(Measurement.META_METRIC, "completed")
+		measurement.addMetadata(Measurement.META_SUBJECT, "all-steps")
 		
 		count = 0
 		

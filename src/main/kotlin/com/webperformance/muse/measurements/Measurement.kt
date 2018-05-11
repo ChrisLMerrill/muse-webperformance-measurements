@@ -20,4 +20,10 @@ data class Measurement(val value: Number?, @JsonProperty val metadata: MutableMa
 	{
 		return Measurement(value, metadata.toMutableMap())
 	}
+	
+	companion object
+	{
+		const val META_METRIC = "metric"
+		const val META_SUBJECT = "subject"
+	}
 }

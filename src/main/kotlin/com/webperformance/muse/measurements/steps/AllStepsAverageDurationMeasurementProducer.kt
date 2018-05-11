@@ -31,7 +31,7 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 	override fun getMeasurements(): Measurements
 	{
 		val common_metadata = mutableMapOf<String, Any>()
-		common_metadata.put("subject", "all-steps")
+		common_metadata.put(Measurement.META_SUBJECT, "all-steps")
 		val measurements = MeasurementsWithCommonMetadata(common_metadata)
 		
 		val calculated = calculator.calculateAndReset()
@@ -40,13 +40,13 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 			avg = Measurement(null)
 		else
 			avg = Measurement(calculated.average)
-		avg.addMetadata("metric", "avg-dur")
+		avg.addMetadata(Measurement.META_METRIC, "avg-dur")
 		measurements.addMeasurement(avg)
 
 		if (count_steps)
 		{
 			val count = Measurement(calculated.count)
-			count.addMetadata("metric", "completed")
+			count.addMetadata(Measurement.META_METRIC, "completed")
 			measurements.addMeasurement(count)
 		}
 		

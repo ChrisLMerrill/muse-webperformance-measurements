@@ -21,10 +21,10 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 			return
 		for (measurement in measurements.iterator())
 		{
-			val subject = measurement.metadata["subject"]
+			val subject = measurement.metadata[Measurement.META_SUBJECT]
 			if (subject != null)
 			{
-				val metric = measurement.metadata["metric"]
+				val metric = measurement.metadata[Measurement.META_METRIC]
 				val value = measurement.value
 				val writer = getWriter(_folder, subject.toString())
 				writer.addValue(metric.toString(), value)

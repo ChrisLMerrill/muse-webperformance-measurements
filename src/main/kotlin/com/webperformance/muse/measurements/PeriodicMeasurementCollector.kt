@@ -95,8 +95,8 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 			while (!done)
 			{
 				val sample_time = Measurement(System.currentTimeMillis())
-				sample_time.addMetadata("subject", "samples")
-				sample_time.addMetadata("metric", "timestamp")
+				sample_time.addMetadata(Measurement.META_SUBJECT, "samples")
+				sample_time.addMetadata(Measurement.META_METRIC, "timestamp")
 				val measurements = HashSet<Measurements>()
 				for (producer in findProducers())
 				{

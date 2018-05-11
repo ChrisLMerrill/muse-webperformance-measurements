@@ -29,9 +29,9 @@ class MeasurementsToCsvFilesTests
 	private fun createMeasurements(value: Long, metric: String, subject: String) : Measurements
 	{
 		val measurement1 = Measurement(value)
-		measurement1.addMetadata("metric", metric)
+		measurement1.addMetadata(Measurement.META_METRIC, metric)
 		val measurements = MeasurementsWithCommonMetadata()
-		measurements.metadata.put("subject", subject)
+		measurements.metadata.put(Measurement.META_SUBJECT, subject)
 		measurements.addMeasurement(measurement1)
 		return measurements
 	}
@@ -39,13 +39,13 @@ class MeasurementsToCsvFilesTests
 	private fun createMeasurements(value1: Long, value2: Long, metric1: String, metric2: String, subject: String) : Measurements
 	{
 		val measurement1 = Measurement(value1)
-		measurement1.addMetadata("metric", metric1)
+		measurement1.addMetadata(Measurement.META_METRIC, metric1)
 
 		val measurement2 = Measurement(value2)
-		measurement2.addMetadata("metric", metric2)
+		measurement2.addMetadata(Measurement.META_METRIC, metric2)
 
 		val measurements = MeasurementsWithCommonMetadata()
-		measurements.metadata.put("subject", subject)
+		measurements.metadata.put(Measurement.META_SUBJECT, subject)
 		measurements.addMeasurement(measurement1)
 		measurements.addMeasurement(measurement2)
 		return measurements
