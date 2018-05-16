@@ -12,9 +12,9 @@ class AllStepsAverageDurationMeasurementProducer : StepMeasurementProducer
 	override fun processEvent(event: MuseEvent, step: StepConfiguration, execution_id: String)
 	{
 		if (StartStepEventType.TYPE_ID == event.typeId)
-			recordStartTime(step, event.timestampNanos, execution_id)
+			recordStartTime(step, event.timestamp, execution_id)
 		else if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
-			recordDuration(step, event.timestampNanos, execution_id)
+			recordDuration(step, event.timestamp, execution_id)
 	}
 	
 	private fun recordDuration(step: StepConfiguration, end_time: Long, execution_id: String)

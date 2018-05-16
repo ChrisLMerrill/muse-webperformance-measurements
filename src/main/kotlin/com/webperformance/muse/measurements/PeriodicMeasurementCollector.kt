@@ -106,7 +106,7 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 
 				// integrate all measurements collections into a measurements collection. Add sequence #
 				val sample = MeasurementsWithCommonMetadata(sample_time)
-				sample.metadata.put("sequence", index)
+				sample.metadata.put(Measurement.META_SEQUENCE, index)
 				for (each_measurements in measurements)
 					for (each_one in each_measurements.iterator())
 						sample.addMeasurement(each_one)

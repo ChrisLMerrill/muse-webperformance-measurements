@@ -132,7 +132,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 				return
 			
 			val list = mutableListOf<String>()
-			list.add("sequence")
+			list.add(Measurement.META_SEQUENCE)
 			for (metric in metrics)
 				list.add(metric)
 			

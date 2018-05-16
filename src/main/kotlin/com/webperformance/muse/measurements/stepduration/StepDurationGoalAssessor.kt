@@ -86,7 +86,7 @@ class StepDurationGoalAssessor(configuration: GenericResourceConfiguration) : Ge
 			{
 				val step_id = step.stepId
 				if (step_tag == null || step.hasTag(step_tag))
-					startTime.put(step_id, event.timestampNanos)
+					startTime.put(step_id, event.timestamp)
 			}
 		}
 		else if (EndStepEventType.TYPE_ID == event.typeId)
@@ -104,7 +104,7 @@ class StepDurationGoalAssessor(configuration: GenericResourceConfiguration) : Ge
 						if (step_goal_name != null && step.getMetadataField(step_goal_name) != null)
 							duration_goal = step.getMetadataField(step_goal_name).toString().toLong()
 						
-						val duration = (event.timestampNanos - started) / 1000000  // convert to milliseconds
+						val duration = event.timestamp - started // in ms
 						var passed = true
 						var message = "Goal passed"
 						if (duration > duration_goal)

@@ -125,10 +125,10 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 			if (EndTestEventType.TYPE_ID.equals(event.typeId))
 				context.removeEventListener(this)
 			else if (StartStepEventType.TYPE_ID == event.typeId)
-				recordStartTime(StepEventType.getStepId(event), event.timestampNanos)
+				recordStartTime(StepEventType.getStepId(event), event.timestamp)
 			else if (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE))
 			{
-				val duration = calculateDuration(StepEventType.getStepId(event), event.timestampNanos)
+				val duration = calculateDuration(StepEventType.getStepId(event), event.timestamp)
 				if (duration >= 0)
 					recordDuration(StepEventType.getStepId(event), duration)
 			}
@@ -157,7 +157,7 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 				{
 					val started: Long? = startTime.remove(step_id)
 					if (started != null)
-						return (finish_time - started)/1000000
+						return finish_time - started
 				}
 			}
 			return -1

@@ -88,7 +88,7 @@ class AverageStepDurationCalculatorTests
 	{
 		start_event = StartStepEventType.create(step, context)
 		end_event = EndStepEventType.create(step, context, BasicStepExecutionResult(StepExecutionStatus.COMPLETE))
-		end_event.timestampNanos = start_event.timestampNanos + (duration * 1000000)
+		end_event.timestamp = start_event.timestamp + duration
 	}
 	
 	

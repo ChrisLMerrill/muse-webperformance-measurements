@@ -112,7 +112,7 @@ class MeasurementsToCsvFilesTests
 		Assert.assertTrue(file.exists())
 		val reader = CSVReader(FileReader(file))
 		val headers = reader.readNext()
-		Assert.assertEquals("sequence", headers[0])
+		Assert.assertEquals(Measurement.META_SEQUENCE, headers[0])
 		Assert.assertEquals("count", headers[1])
 		if (second)
 			Assert.assertEquals("duration", headers[2])

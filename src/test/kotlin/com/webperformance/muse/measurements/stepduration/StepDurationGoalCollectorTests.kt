@@ -40,7 +40,7 @@ class StepDurationGoalCollectorTests
 	
 	private fun runStep(duration: Long)
 	{
-		end_event.timestampNanos = start_event.timestampNanos + duration * 1000000 // 2 seconds in nanos
+		end_event.timestamp = start_event.timestamp + duration // duration in ms
 		
 		// send it Step events
 		context.raiseEvent(start_event)

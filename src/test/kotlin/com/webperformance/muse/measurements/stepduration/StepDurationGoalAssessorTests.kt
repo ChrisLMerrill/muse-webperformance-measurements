@@ -75,7 +75,7 @@ class StepDurationGoalAssessorTests
 		
 		context.raiseEvent(StartStepEventType.create(step_config, context))
 		val incomplete_end_event = EndStepEventType.create(step_config, context, BasicStepExecutionResult(StepExecutionStatus.INCOMPLETE))
-		incomplete_end_event.timestampNanos = start_event.timestampNanos + 5000L * 1000000L // 2 seconds in nanos
+		incomplete_end_event.timestamp = start_event.timestamp + 5000L // 2 seconds in ms
 		context.raiseEvent(incomplete_end_event)
 		
 		// check the received events
@@ -108,11 +108,6 @@ class StepDurationGoalAssessorTests
 		assertGoalEventMessageContains(events_received[2], "80")
 	}
 	
-	private fun runTest(duration: Long, goal: Long)
-	{
-		runTest(duration, goal, StepDurationGoalAssessorConfiguration.StepDurationGoalAssessorType().create())
-	}
-
 	private fun runTest(duration: Long, goal: Long, config: StepDurationGoalAssessorConfiguration)
 	{
 		config.parameters().addSource("goal", ValueSourceConfiguration.forValue(goal))
@@ -123,7 +118,7 @@ class StepDurationGoalAssessorTests
 
 	private fun runStep(duration: Long)
 	{
-		end_event.timestampNanos = start_event.timestampNanos + duration * 1000000 // 2 seconds in nanos
+		end_event.timestamp = start_event.timestamp + duration // duration in ms
 		
 		// send it Step events
 		context.raiseEvent(start_event)

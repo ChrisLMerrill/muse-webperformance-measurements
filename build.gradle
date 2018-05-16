@@ -11,7 +11,7 @@ version = 0.3
 group = 'com.webperformance.muse'
 
 dependencies {
-    compile 'org.musetest:muse-core:0.12'
+    compile 'org.musetest:muse-core:0.13'
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"

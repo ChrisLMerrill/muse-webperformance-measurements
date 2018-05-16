@@ -1,54 +1,41 @@
 package com.webperformance.muse.measurements.steps
 
 import org.slf4j.*
-import java.util.HashMap
+import java.util.*
 
-class StepAverageDurationCalculator
+/*
+ * Tracks the start-times of steps and returns the duration when it completes.
+ */
+class StepDurationCalculator
 {
 	val start_times = HashMap<String, Long>()
-	var total = 0L
-	var count = 0L
 	
-	fun recordStartTime(id: String, time: Long)
+	fun recordStartTime(id: String, time: Long): Boolean
 	{
 		if (start_times.containsKey(id))
+		{
 			LOG.error("start-time already recorded for step $id. Possibly the previous iteration never ended? Is this step called recursively (not supported at this time)? Overwriting the previous value.")
+			return false
+		}
 		start_times.put(id, time)
+		return true
 	}
 
-	fun recordFinish(id: String, time: Long)
+	fun getDuration(id: String, time: Long): Long?
 	{
 		val started: Long? = start_times.remove(id)
 		if (started == null)
 		{
 			LOG.error(String.format("End event received for step %s but no start-time was found. Ignoring.", id))
-			return
+			return null
 		}
 		
-		val duration = time - started
-		total += duration
-		count ++
+		return time - started
 	}
-	
-	fun calculateAndReset() : Result
-	{
-		val result : Result
-		if (count == 0L)
-			result = Result(null, 0)
-		else
-		{
-			result = Result(total / count, count)
-			total = 0L
-			count = 0L
-		}
-		return result
-	}
-	
-	data class Result(val average: Long?, val count: Long)
-	
+
 	companion object
 	{
-		val LOG = LoggerFactory.getLogger(StepAverageDurationCalculator::class.java)
+		val LOG = LoggerFactory.getLogger(StepDurationCalculator::class.java)
 	}
 	
 }

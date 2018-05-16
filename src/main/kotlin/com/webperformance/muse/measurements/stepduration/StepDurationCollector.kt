@@ -64,7 +64,7 @@ class StepDurationCollector(configuration: GenericResourceConfiguration) : Gener
 			if (step != null)
 			{
 				if (step_tag == null || step.hasTag(step_tag))
-					startTime.put(step.stepId, event.timestampNanos)
+					startTime.put(step.stepId, event.timestamp)
 			}
 			else
 				LOG.error("Did not find the step: " + StepEventType.getStepId(event))
@@ -79,7 +79,7 @@ class StepDurationCollector(configuration: GenericResourceConfiguration) : Gener
 					val step_id = step.stepId
 					val started: Long? = startTime.remove(step_id)
 					if (started != null)
-						data.record(step_id, (event.timestampNanos - started)/1000000)
+						data.record(step_id, event.timestamp - started)
 				}
 			}
 		else if (EndTestEventType.TYPE_ID == event.typeId)

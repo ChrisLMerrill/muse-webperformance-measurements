@@ -25,5 +25,7 @@ data class Measurement(val value: Number?, @JsonProperty val metadata: MutableMa
 	{
 		const val META_METRIC = "metric"
 		const val META_SUBJECT = "subject"
+		const val META_SEQUENCE = "sequence"
+		const val META_TIMESTAMP = "time" // milliseconds
 	}
 }
