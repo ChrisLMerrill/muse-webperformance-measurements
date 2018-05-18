@@ -5,6 +5,7 @@ import org.musetest.core.*
 import org.musetest.core.events.*
 import org.musetest.core.plugins.*
 import org.musetest.core.suite.*
+import java.net.*
 import java.util.*
 
 /**
@@ -25,6 +26,7 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 		if (!(context is TestSuiteExecutionContext))
 			return
 		setupPeriod(context)
+		_add_source = configuration.isSourceHostname(context)
 		
 		_context = context
 		context.addEventListener({ event ->
@@ -48,7 +50,7 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 	{
 		if (_period == 0L)
 		{
-			val period_config = configuration.parameters.get(PeriodicMeasurementCollectorConfiguration.PERIOD_PARAM_NAME)
+			val period_config = configuration.parameters.get(PeriodicMeasurementCollectorConfiguration.PERIOD_PARAM)
 			if (period_config != null)
 			{
 				val configured_period = period_config.createSource(context.project).resolveValue(context)
@@ -84,6 +86,8 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 	private lateinit var _context: TestSuiteExecutionContext
 	private var _thread: Thread? = null
 	private var _period = 0L
+	private val _hostname = InetAddress.getLocalHost().hostName
+	private var _add_source = false
 	
 	
 	inner class Collector : Runnable
@@ -95,8 +99,8 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 			while (!done)
 			{
 				val sample_time = Measurement(System.currentTimeMillis())
-				sample_time.addMetadata(Measurement.META_SUBJECT, "samples")
-				sample_time.addMetadata(Measurement.META_METRIC, "timestamp")
+				sample_time.metadata[Measurement.META_SUBJECT] = "samples"
+				sample_time.metadata[Measurement.META_METRIC] = "timestamp"
 				val measurements = HashSet<Measurements>()
 				for (producer in findProducers())
 				{
@@ -106,7 +110,8 @@ class PeriodicMeasurementCollector(val configuration: PeriodicMeasurementCollect
 
 				// integrate all measurements collections into a measurements collection. Add sequence #
 				val sample = MeasurementsWithCommonMetadata(sample_time)
-				sample.metadata.put(Measurement.META_SEQUENCE, index)
+				sample.metadata[Measurement.META_SEQUENCE] = index
+				sample.metadata[Measurement.META_SOURCE_HOST] = _hostname
 				for (each_measurements in measurements)
 					for (each_one in each_measurements.iterator())
 						sample.addMeasurement(each_one)

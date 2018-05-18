@@ -7,6 +7,7 @@ import org.musetest.core.context.*
 import org.musetest.core.events.*
 import org.musetest.core.plugins.*
 import org.musetest.core.step.*
+import org.musetest.core.step.descriptor.*
 import org.musetest.core.suite.*
 
 /**
@@ -18,8 +19,10 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 {
 	private val calculator = StepDurationCalculator()
 	private var step_tag: String? = null
+	private var add_test_id = false
 	private var initialized = false
 	private var measurements = MultipleMeasurement()
+	private lateinit var descriptors: StepDescriptors
 	
 	override fun conditionallyAddToContext(context: MuseExecutionContext, automatic: Boolean): Boolean
 	{
@@ -54,35 +57,39 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 			return
 		}
 		
-		if (!(context is TestSuiteExecutionContext))
+		if (context !is TestSuiteExecutionContext)
 			return
 		
 		initialized = true
-
 		step_tag = configuration.getStepTag(context)
+		add_test_id = configuration.isAddTestId(context)
+		descriptors = context.getProject().stepDescriptors
 	}
 	
 	@Synchronized
 	override fun getMeasurements(): Measurements
 	{
-		var collected = measurements
+		val collected = measurements
 		measurements = MultipleMeasurement()
 		return collected
 	}
 	
 	@Synchronized
-	fun processEvent(event: MuseEvent, step: StepConfiguration, test_id: String)
+	fun processEvent(event: MuseEvent, step: StepConfiguration, context_id: String, test_id: String)
 	{
-		val id = test_id + ":" + step.stepId
+		val id = context_id + ":" + step.stepId
 		if (StartStepEventType.TYPE_ID == event.typeId)
 			calculator.recordStartTime(id, event.timestamp)
 		else if (EndStepEventType.TYPE_ID == event.typeId)
 		{
-			var duration = calculator.getDuration(id, event.timestamp)
+			val duration = calculator.getDuration(id, event.timestamp)
 			val measured = Measurement(duration)
-			measured.addMetadata(Measurement.META_SUBJECT, "step:" + step.stepId)
-			measured.addMetadata(Measurement.META_METRIC, "step.duration")
+			measured.addMetadata(Measurement.META_SUBJECT, step.stepId.toString())
+			measured.addMetadata(Measurement.META_SUBJECT_TYPE, "step")
+			measured.addMetadata(Measurement.META_METRIC, "duration")
 			measured.addMetadata(Measurement.META_TIMESTAMP, event.timestamp)
+			if (add_test_id)
+				measured.addMetadata(Measurement.META_TEST, test_id)
 			measurements.add(measured)
 		}
 	}
@@ -95,7 +102,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 		
 		override fun eventRaised(event: MuseEvent)
 		{
-			if (EndTestEventType.TYPE_ID.equals(event.typeId))
+			if (EndTestEventType.TYPE_ID == event.typeId)
 				context.removeEventListener(this)
 			else if (StartStepEventType.TYPE_ID == event.typeId
 					|| (EndStepEventType.TYPE_ID == event.typeId && !event.hasTag(StepEventType.INCOMPLETE)))
@@ -103,7 +110,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 				val step = context.stepLocator.findStep(StepEventType.getStepId(event))
 				if (step == null || (step_tag != null && !step.hasTag(step_tag)))
 					return
-				processEvent(event, step, context.hashCode().toString())
+				processEvent(event, step, context.hashCode().toString(), context.test.id)
 			}
 			else if (EndTestEventType.TYPE_ID == event.typeId)
 				context.removeEventListener(this)
