@@ -23,6 +23,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 	private var initialized = false
 	private var measurements = MultipleMeasurement()
 	private lateinit var descriptors: StepDescriptors
+	private lateinit var suite_context : TestSuiteExecutionContext
 	
 	override fun conditionallyAddToContext(context: MuseExecutionContext, automatic: Boolean): Boolean
 	{
@@ -61,6 +62,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 			return
 		
 		initialized = true
+		suite_context = context
 		step_tag = configuration.getStepTag(context)
 		add_test_id = configuration.isAddTestId(context)
 		descriptors = context.getProject().stepDescriptors
@@ -71,27 +73,46 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 	{
 		val collected = measurements
 		measurements = MultipleMeasurement()
+		
+		if (configuration.isCollectRunningSteps(suite_context))
+		{
+			val timestamp = System.currentTimeMillis()
+			val counts = calculator.getRunningStepCounts()
+			for (step_id in counts.keys)
+				collected.add(createMeasurement(step_id, "running", counts[step_id]!!, timestamp, null))
+			val durations = calculator.getRunningStepDurations(timestamp)
+			for (step_id in durations.keys)
+				collected.add(createMeasurement(step_id, "running_duration", durations[step_id]!!, timestamp, null))
+		}
+		
+		
 		return collected
 	}
 	
 	@Synchronized
 	fun processEvent(event: MuseEvent, step: StepConfiguration, context_id: String, test_id: String)
 	{
-		val id = context_id + ":" + step.stepId
 		if (StartStepEventType.TYPE_ID == event.typeId)
-			calculator.recordStartTime(id, event.timestamp)
+			calculator.recordStartTime(context_id, step.stepId.toString(), event.timestamp)
 		else if (EndStepEventType.TYPE_ID == event.typeId)
 		{
-			val duration = calculator.getDuration(id, event.timestamp)
-			val measured = Measurement(duration)
-			measured.addMetadata(Measurement.META_SUBJECT, step.stepId.toString())
-			measured.addMetadata(Measurement.META_SUBJECT_TYPE, "step")
-			measured.addMetadata(Measurement.META_METRIC, "duration")
-			measured.addMetadata(Measurement.META_TIMESTAMP, event.timestamp)
-			if (add_test_id)
-				measured.addMetadata(Measurement.META_TEST, test_id)
-			measurements.add(measured)
+			val step_id = step.stepId.toString()
+			val duration = calculator.getDuration(context_id, step_id, event.timestamp)
+			if (duration != null)
+				measurements.add(createMeasurement(step_id, "duration", duration, event.timestamp, test_id))
 		}
+	}
+	
+	private fun createMeasurement(step_id: String, measurement: String, value: Number, timestamp: Long, test_id: String?): Measurement
+	{
+		val measured = Measurement(value)
+		measured.addMetadata(Measurement.META_SUBJECT, step_id)
+		measured.addMetadata(Measurement.META_SUBJECT_TYPE, "step")
+		measured.addMetadata(Measurement.META_METRIC, measurement)
+		measured.addMetadata(Measurement.META_TIMESTAMP, timestamp)
+		if (add_test_id && test_id != null)
+			measured.addMetadata(Measurement.META_TEST, test_id)
+		return measured
 	}
 	
 	inner class TestEventListener(val context: SteppedTestExecutionContext) : MuseEventListener
