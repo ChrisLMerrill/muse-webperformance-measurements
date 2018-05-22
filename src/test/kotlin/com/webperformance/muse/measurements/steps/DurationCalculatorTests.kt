@@ -1,10 +1,11 @@
 package com.webperformance.muse.measurements.steps
 
+import com.webperformance.muse.measurements.*
 import org.junit.*
 
-class StepDurationCalculatorTests
+class DurationCalculatorTests
 {
-	val calculator = StepDurationCalculator()
+	val calculator = TaskDurationCalculator()
 	
 	@Test
 	fun missingStart()
@@ -66,10 +67,10 @@ class StepDurationCalculatorTests
 	@Test
 	fun zeroRunning()
 	{
-	    val counts = calculator.getRunningStepCounts()
+	    val counts = calculator.getRunningTaskCounts()
 		Assert.assertTrue(counts.isEmpty())
 		
-		val durations = calculator.getRunningStepDurations(System.currentTimeMillis())
+		val durations = calculator.getRunningTaskDurations(System.currentTimeMillis())
 		Assert.assertTrue(durations.isEmpty())
 	}
 	
@@ -79,10 +80,10 @@ class StepDurationCalculatorTests
 		val now = System.currentTimeMillis()
 		calculator.recordStartTime("123", "step1", now - 1000)
 
-		val counts = calculator.getRunningStepCounts()
+		val counts = calculator.getRunningTaskCounts()
 		Assert.assertEquals(1, counts.size)
 
-		val durations = calculator.getRunningStepDurations(now)
+		val durations = calculator.getRunningTaskDurations(now)
 		Assert.assertEquals(1000L, durations.values.iterator().next())
 	}
 
@@ -93,13 +94,13 @@ class StepDurationCalculatorTests
 		calculator.recordStartTime("123", "step1", now - 1000)
 		calculator.recordStartTime("456", "step2", now - 2000)
 
-		val counts = calculator.getRunningStepCounts()
+		val counts = calculator.getRunningTaskCounts()
 		Assert.assertEquals(2, counts.size)
 		val iterator = counts.values.iterator()
 		Assert.assertEquals(1, iterator.next())
 		Assert.assertEquals(1, iterator.next())
 
-		val durations = calculator.getRunningStepDurations(now)
+		val durations = calculator.getRunningTaskDurations(now)
 		Assert.assertEquals(1000L, durations["step1"])
 		Assert.assertEquals(2000L, durations["step2"])
 	}
@@ -111,11 +112,11 @@ class StepDurationCalculatorTests
 		calculator.recordStartTime("123", "step1", now - 1000)
 		calculator.recordStartTime("456", "step1", now - 2000)
 
-		val counts = calculator.getRunningStepCounts()
+		val counts = calculator.getRunningTaskCounts()
 		Assert.assertEquals(1, counts.size)
 		Assert.assertEquals(2, counts.values.iterator().next())
 
-		val durations = calculator.getRunningStepDurations(now)
+		val durations = calculator.getRunningTaskDurations(now)
 		Assert.assertEquals(3000L, durations["step1"])
 	}
 }

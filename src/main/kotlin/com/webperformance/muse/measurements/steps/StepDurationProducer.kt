@@ -17,7 +17,7 @@ import org.musetest.core.suite.*
  */
 class StepDurationProducer(val configuration: StepDurationProducerConfiguration) : GenericConfigurablePlugin(configuration), MeasurementsProducer
 {
-	private val calculator = StepDurationCalculator()
+	private val calculator = TaskDurationCalculator()
 	private var step_tag: String? = null
 	private var add_test_id = false
 	private var initialized = false
@@ -77,10 +77,10 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 		if (configuration.isCollectRunningSteps(suite_context))
 		{
 			val timestamp = System.currentTimeMillis()
-			val counts = calculator.getRunningStepCounts()
+			val counts = calculator.getRunningTaskCounts()
 			for (step_id in counts.keys)
 				collected.add(createMeasurement(step_id, "running", counts[step_id]!!, timestamp, null))
-			val durations = calculator.getRunningStepDurations(timestamp)
+			val durations = calculator.getRunningTaskDurations(timestamp)
 			for (step_id in durations.keys)
 				collected.add(createMeasurement(step_id, "running_duration", durations[step_id]!!, timestamp, null))
 		}

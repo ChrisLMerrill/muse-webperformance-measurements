@@ -12,7 +12,7 @@ import org.musetest.core.step.StepConfiguration
 import org.musetest.core.step.StepExecutionStatus
 import org.musetest.core.steptest.SteppedTest
 
-class AverageStepDurationCalculatorTests
+class AverageDurationCalculatorTests
 {
 	@Test
 	fun averageOfSingleDuration()
