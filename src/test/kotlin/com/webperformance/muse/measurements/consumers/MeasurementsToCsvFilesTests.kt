@@ -130,6 +130,28 @@ class MeasurementsToCsvFilesTests
 			Assert.assertEquals("22", values2[2])
 	}
 	
+	@Test
+	fun newMetricEncountered()
+	{
+		_plugin.acceptMeasurements(createMeasurements(1, "count", "subject1"))
+		_plugin.acceptMeasurements(createMeasurements(2, "size", "subject1"))
+		
+		_plugin.closeFiles()
+		
+		val reader = CSVReader(FileReader(File(_location.baseFolder, "subject1.csv")))
+		var headers = reader.readNext()
+		Assert.assertEquals("count", headers[1])
+		Assert.assertEquals(2, headers.size)
+
+		reader.readNext() // ignore first sample
+		reader.readNext() // ignore second sample
+		
+		headers = reader.readNext()
+		Assert.assertEquals(3, headers.size)
+		Assert.assertEquals("count", headers[1])
+		Assert.assertEquals("size", headers[2])
+	}
+	
 	@Before
 	fun setup()
 	{

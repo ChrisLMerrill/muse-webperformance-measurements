@@ -92,7 +92,9 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 	{
 		private val writer : CSVWriter
 		private val file_writer: FileWriter
-		private var header_written = false
+		private var headers_written: Int? = null
+		val metrics = ArrayList<String>()
+		val values = HashMap<String, Any>()
 
 		init
 		{
@@ -128,7 +130,7 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 		
 		private fun writeHeader()
 		{
-			if (header_written)
+			if (headers_written != null)
 				return
 			
 			val list = mutableListOf<String>()
@@ -137,16 +139,18 @@ class MeasurementsToCsvFiles(configuration: GenericResourceConfiguration) : Gene
 				list.add(metric)
 			
 			writer.writeNext(list.toTypedArray())
-			header_written = true
+			headers_written = metrics.size
 		}
 		
 		fun close()
 		{
+			if (headers_written != null && metrics.size > headers_written!!)
+			{
+				headers_written = null
+				writeHeader()
+			}
 			writer.flush()
 			file_writer.close()
 		}
-		
-		val metrics = ArrayList<String>()
-		val values = HashMap<String, Any>()
 	}
 }
