@@ -43,21 +43,28 @@ class TaskDurationCalculator
 	{
 		val counts = mutableMapOf<String, Long>()
 		for (entry in start_times.entries)
-			counts.put(entry.key, entry.value.size.toLong())
+		{
+			val count = entry.value.size
+			if (count > 0)
+				counts.put(entry.key, count.toLong())
+		}
 		return counts
 	}
 	
 	fun getRunningTaskDurations(now: Long): Map<String, Long>
 	{
-		val counts = mutableMapOf<String, Long>()
+		val durations = mutableMapOf<String, Long>()
 		for (entry in start_times.entries)
 		{
-			var total = 0L
-			for (duration in entry.value.values)
-				total += now - duration
-			counts.put(entry.key, total)
+			if (entry.value.size > 0)
+			{
+				var total = 0L
+				for (duration in entry.value.values)
+					total += now - duration
+				durations.put(entry.key, total)
+			}
 		}
-		return counts
+		return durations
 	}
 	
 	private fun getMapForTask(task_id: String): MutableMap<String, Long>
