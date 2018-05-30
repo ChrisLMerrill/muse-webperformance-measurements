@@ -24,8 +24,8 @@ class StepDurationGoalCollectorTests
 		runStep(2000L)
 		
 		// check the data
-		Assert.assertEquals(0L, collector.data?.getPasses(step_id))
-		Assert.assertEquals(1L, collector.data?.getFails(step_id))
+		Assert.assertEquals(0L, collector.getGoals()?.getPasses(step_id))
+		Assert.assertEquals(1L, collector.getGoals()?.getFails(step_id))
 	}
 
 	@Test
@@ -34,8 +34,8 @@ class StepDurationGoalCollectorTests
 		runStep(900L)
 		
 		// check the data
-		Assert.assertEquals(1L, collector.data?.getPasses(step_id))
-		Assert.assertEquals(0L, collector.data?.getFails(step_id))
+		Assert.assertEquals(1L, collector.getGoals()?.getPasses(step_id))
+		Assert.assertEquals(0L, collector.getGoals()?.getFails(step_id))
 	}
 	
 	private fun runStep(duration: Long)

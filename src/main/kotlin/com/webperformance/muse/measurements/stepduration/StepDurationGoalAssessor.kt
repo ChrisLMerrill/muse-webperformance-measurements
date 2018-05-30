@@ -128,7 +128,16 @@ class StepDurationGoalAssessor(configuration: GenericResourceConfiguration) : Ge
 		return stepped_context?.stepLocator?.findStep(StepEventType.getStepId(event))
 	}
 	
-	override fun getData(): StepDurationGoals?
+	override fun getData(): List<StepDurationGoals>
+	{
+		val goals = getGoals()
+		if (goals == null)
+			return emptyList()
+		else
+			return listOf(goals)
+	}
+	
+	fun getGoals(): StepDurationGoals?
 	{
 		return goals
 	}

@@ -4,7 +4,7 @@ import org.musetest.core.MuseEvent
 import org.musetest.core.MuseEventListener
 import org.musetest.core.MuseExecutionContext
 import org.musetest.core.context.SteppedTestExecutionContext
-import org.musetest.core.datacollection.DataCollector
+import org.musetest.core.datacollection.*
 import org.musetest.core.events.EndStepEventType
 import org.musetest.core.events.EndTestEventType
 import org.musetest.core.events.StartStepEventType
@@ -69,7 +69,12 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 		}
 	}
 	
-	override fun getData(): AverageStepDurations
+	override fun getData(): List<AverageStepDurations>
+	{
+		return listOf(getDurations())
+	}
+	
+	fun getDurations(): AverageStepDurations
 	{
 		val data = AverageStepDurations()
 		for (step_id in totals.keys)

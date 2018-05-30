@@ -24,8 +24,8 @@ class AverageDurationCalculatorTests
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 		
-		Assert.assertEquals(1, calculator.data.averages.size)
-		Assert.assertEquals(1000L, calculator.data.averages[9L])
+		Assert.assertEquals(1, calculator.getDurations().averages.size)
+		Assert.assertEquals(1000L, calculator.getDurations().averages[9L])
 	}
 	
 	@Test
@@ -42,8 +42,8 @@ class AverageDurationCalculatorTests
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 		
-		Assert.assertEquals(1, calculator.data.averages.size)
-		Assert.assertEquals(800L, calculator.data.averages[9L])
+		Assert.assertEquals(1, calculator.getDurations().averages.size)
+		Assert.assertEquals(800L, calculator.getDurations().averages[9L])
 	}
 	
 	@Test
@@ -69,9 +69,9 @@ class AverageDurationCalculatorTests
 		context.raiseEvent(start_event)
 		context.raiseEvent(end_event)
 		
-		Assert.assertEquals(2, calculator.data.averages.size)
-		Assert.assertEquals(800L, calculator.data.averages[9L])
-		Assert.assertEquals(300L, calculator.data.averages[5L])
+		Assert.assertEquals(2, calculator.getDurations().averages.size)
+		Assert.assertEquals(800L, calculator.getDurations().averages[9L])
+		Assert.assertEquals(300L, calculator.getDurations().averages[5L])
 	}
 	
 	@Before

@@ -36,7 +36,8 @@ class StepDurationCollectorTests
 		context.raiseEvent(end_event)
 		
 		// check the collected data
-		val test_data = collector.data
+		Assert.assertEquals(1, collector.data.size)
+		val test_data = collector.data[0]
 		Assert.assertEquals(1, test_data.durations.size)  // collected for 1 step
 		Assert.assertNotNull(test_data.durations[9L])
 		Assert.assertEquals(1, test_data.durations[9L]?.size)  // collected 1 duration for that step

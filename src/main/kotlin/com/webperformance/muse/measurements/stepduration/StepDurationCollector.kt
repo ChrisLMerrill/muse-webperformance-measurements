@@ -49,7 +49,12 @@ class StepDurationCollector(configuration: GenericResourceConfiguration) : Gener
 		}
 	}
 	
-	override fun getData(): StepDurations
+	override fun getData(): List<StepDurations>
+	{
+		return listOf(getDurations())
+	}
+	
+	fun getDurations(): StepDurations
 	{
 		return data
 	}
