@@ -20,6 +20,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 	private val calculator = TaskDurationCalculator()
 	private var step_tag: String? = null
 	private var add_test_id = false
+	private var add_status = false
 	private var initialized = false
 	private var measurements = MultipleMeasurement()
 	private lateinit var descriptors: StepDescriptors
@@ -65,6 +66,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 		suite_context = context
 		step_tag = configuration.getStepTag(context)
 		add_test_id = configuration.isAddTestId(context)
+		add_status = configuration.isAddStepStatus(context)
 		descriptors = context.getProject().stepDescriptors
 	}
 	
@@ -99,7 +101,19 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 			val step_id = step.stepId.toString()
 			val duration = calculator.getDuration(context_id, step_id, event.timestamp)
 			if (duration != null)
-				measurements.add(createMeasurement(step_id, "duration", duration, event.timestamp, test_id))
+			{
+				val measurement = createMeasurement(step_id, "duration", duration, event.timestamp, test_id)
+				if (add_status)
+				{
+					if (event.hasTag(MuseEvent.FAILURE))
+						measurement.addMetadata(Measurement.META_STATUS, FAILURE)
+					else if (event.hasTag(MuseEvent.ERROR))
+						measurement.addMetadata(Measurement.META_STATUS, ERROR)
+					else
+						measurement.addMetadata(Measurement.META_STATUS, SUCCESS)
+				}
+				measurements.add(measurement)
+			}
 		}
 	}
 	
@@ -107,7 +121,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 	{
 		val measured = Measurement(value)
 		measured.addMetadata(Measurement.META_SUBJECT, step_id)
-		measured.addMetadata(Measurement.META_SUBJECT_TYPE, "step")
+		measured.addMetadata(Measurement.META_SUBJECT_TYPE, SUBJECT_TYPE)
 		measured.addMetadata(Measurement.META_METRIC, measurement)
 		measured.addMetadata(Measurement.META_TIMESTAMP, timestamp)
 		if (add_test_id && test_id != null)
@@ -136,5 +150,13 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 			else if (EndTestEventType.TYPE_ID == event.typeId)
 				context.removeEventListener(this)
 		}
+	}
+	
+	companion object
+	{
+		val SUBJECT_TYPE = "step"
+		val FAILURE = "failure"
+		val ERROR = "error"
+		val SUCCESS = "success"
 	}
 }

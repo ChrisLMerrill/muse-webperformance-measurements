@@ -29,6 +29,7 @@ data class Measurement(val value: Number?, @JsonProperty val metadata: MutableMa
 		const val META_SEQUENCE = "sequence"
 		const val META_TIMESTAMP = "time" // milliseconds
 		const val META_TEST = "test"
+		const val META_STATUS = "status"
 		const val META_SOURCE_HOST = "source_host"
 	}
 }

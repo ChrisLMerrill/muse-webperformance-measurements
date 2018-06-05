@@ -15,7 +15,7 @@ import org.musetest.core.suite.*
  */
 class StepDurationProducerTests
 {
-	val producer = StepDurationProducer(StepDurationProducerConfiguration())
+	val producer = StepDurationProducer(StepDurationProducerConfiguration(true, true))
 	val step1 = StepConfiguration(LogMessage.TYPE_ID)
 	val step2 = StepConfiguration(LogMessage.TYPE_ID)
 	
@@ -26,7 +26,7 @@ class StepDurationProducerTests
 		val now = System.currentTimeMillis()
 	    producer.processEvent(createStartEvent(step1, now), step1, "id1", "test1")
 		val later = now + 1000
-		producer.processEvent(createEndEvent(step1, later), step1, "id1", "test1")
+		producer.processEvent(createEndEvent(step1, later, true), step1, "id1", "test1")
 		
 		val measurements = producer.getMeasurements().iterator()
 		val measurement = measurements.next()
@@ -35,9 +35,25 @@ class StepDurationProducerTests
 		Assert.assertEquals(later, measurement.metadata[Measurement.META_TIMESTAMP])
 		Assert.assertEquals("duration", measurement.metadata[Measurement.META_METRIC])
 		Assert.assertEquals("1", measurement.metadata[Measurement.META_SUBJECT])
-		Assert.assertEquals("step", measurement.metadata[Measurement.META_SUBJECT_TYPE])
+		Assert.assertEquals(StepDurationProducer.SUBJECT_TYPE, measurement.metadata[Measurement.META_SUBJECT_TYPE])
+		Assert.assertEquals("test1", measurement.metadata[Measurement.META_TEST])
+		Assert.assertEquals(StepDurationProducer.SUCCESS, measurement.metadata[Measurement.META_STATUS])
 		
 		Assert.assertFalse(measurements.hasNext())
+	}
+	
+	@Test
+	fun failureStatus()
+	{
+		producer.initialize(DefaultTestSuiteExecutionContext(SimpleProject(), SimpleTestSuite()))
+		val now = System.currentTimeMillis()
+	    producer.processEvent(createStartEvent(step1, now), step1, "id1", "test1")
+		val later = now + 1000
+		producer.processEvent(createEndEvent(step1, later, false), step1, "id1", "test1")
+		
+		val measurements = producer.getMeasurements().iterator()
+		val measurement = measurements.next()
+		Assert.assertEquals(StepDurationProducer.FAILURE, measurement.metadata[Measurement.META_STATUS])
 	}
 	
 	private fun createStartEvent(config: StepConfiguration, start_time: Long) : MuseEvent
@@ -47,10 +63,12 @@ class StepDurationProducerTests
 		return event
 	}
 	
-	private fun createEndEvent(config: StepConfiguration, start_time: Long) : MuseEvent
+	private fun createEndEvent(config: StepConfiguration, start_time: Long, success: Boolean) : MuseEvent
 	{
 		val event = StepEventType.create(EndStepEventType.TYPE_ID, config)
 		event.timestamp = start_time
+		if (!success)
+			event.addTag(MuseEvent.FAILURE)
 		return event
 	}
 	
