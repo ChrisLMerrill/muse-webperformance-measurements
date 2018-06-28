@@ -173,5 +173,13 @@ class AverageStepDurationCalculator(configuration: AverageStepDurationCalculator
 			return context.stepLocator?.findStep(id)
 		}
 		
+		override fun shutdown()
+		{
+		}
+		
+		override fun getId(): String
+		{
+			return javaClass.simpleName;
+		}
 	}
 }

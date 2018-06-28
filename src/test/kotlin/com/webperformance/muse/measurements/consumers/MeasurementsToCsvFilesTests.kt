@@ -194,6 +194,16 @@ class MeasurementsToCsvFilesTests
 			return _folder
 		}
 		
+		override fun shutdown()
+		{
+			TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+		}
+		
+		override fun getId(): String
+		{
+			return javaClass.simpleName;
+		}
+		
 		val _folder = Files.createTempDirectory("musetest").toFile()
 	}
 }
