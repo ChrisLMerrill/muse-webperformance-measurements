@@ -102,7 +102,7 @@ class StepSummaryMeasurementsProducerConfiguration : GenericResourceConfiguratio
 
 		override fun getDescriptor(): ResourceDescriptor
 		{
-			return DefaultResourceDescriptor(this, "Creates measurements of step duration")
+			return DefaultResourceDescriptor(this, "Creates sampled measurements of steps")
 		}
 	}
 
