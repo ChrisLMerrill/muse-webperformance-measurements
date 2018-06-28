@@ -16,7 +16,6 @@ import org.musetest.core.suite.*
 class TestDurationProducer(val configuration: TestDurationProducerConfiguration) : GenericConfigurablePlugin(configuration), MeasurementsProducer
 {
 	private val calculator = TaskDurationCalculator()
-	private var add_test_id = false
 	private var initialized = false
 	private var measurements = MultipleMeasurement()
 	private var collect_running_measurements = false
@@ -59,7 +58,6 @@ class TestDurationProducer(val configuration: TestDurationProducerConfiguration)
 			return
 		
 		initialized = true
-		add_test_id = configuration.isAddTestId(context)
 		collect_running_measurements = configuration.isCollectRunningTests(context)
 	}
 	
@@ -73,11 +71,11 @@ class TestDurationProducer(val configuration: TestDurationProducerConfiguration)
 		{
 			val timestamp = System.currentTimeMillis()
 			val counts = calculator.getRunningTaskCounts()
-			for (step_id in counts.keys)
-				collected.add(createMeasurement(step_id, "running", counts[step_id]!!, timestamp))
+			for (test_id in counts.keys)
+				collected.add(createMeasurement(test_id, "running", counts[test_id]!!, timestamp))
 			val durations = calculator.getRunningTaskDurations(timestamp)
-			for (step_id in durations.keys)
-				collected.add(createMeasurement(step_id, "running_duration", durations[step_id]!!, timestamp))
+			for (test_id in durations.keys)
+				collected.add(createMeasurement(test_id, "running_duration", durations[test_id]!!, timestamp))
 		}
 		
 		return collected

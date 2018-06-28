@@ -18,7 +18,6 @@ import org.musetest.core.values.descriptor.*
 @MuseSubsourceDescriptors(
 	MuseSubsourceDescriptor(displayName = "Apply automatically?", description = "If this source resolves to true, this plugin configuration will be automatically applied to tests", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.AUTO_APPLY_PARAM),
 	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.APPLY_CONDITION_PARAM),
-	MuseSubsourceDescriptor(displayName = "Add Test Id", description = "If this parameter is present and true, add the test id to the measurements", type = SubsourceDescriptor.Type.Named, name = TestDurationProducerConfiguration.ADD_TEST_ID_PARAM, optional = true),
 	MuseSubsourceDescriptor(displayName = "Running tests", description = "If this parameter is present and true, measure the number and duration of currently running tests", type = SubsourceDescriptor.Type.Named, name = TestDurationProducerConfiguration.COLLECT_RUNNING_PARAM, optional = true)
 )
 class TestDurationProducerConfiguration : GenericResourceConfiguration(), PluginConfiguration
@@ -34,12 +33,6 @@ class TestDurationProducerConfiguration : GenericResourceConfiguration(), Plugin
 	}
 
 
-	@JsonIgnore
-	fun isAddTestId(context: MuseExecutionContext): Boolean
-	{
-		return isParameterTrue(context, ADD_TEST_ID_PARAM)
-	}
-	
 	@JsonIgnore
 	fun isCollectRunningTests(context: MuseExecutionContext): Boolean
 	{
@@ -67,7 +60,6 @@ class TestDurationProducerConfiguration : GenericResourceConfiguration(), Plugin
 	{
 		val TYPE_ID = TestDurationProducerConfiguration::class.java.getAnnotation(MuseTypeId::class.java).value
 		const val COLLECT_RUNNING_PARAM = "collect-running"
-		const val ADD_TEST_ID_PARAM = "addtestid"
 	}
 	
 }
