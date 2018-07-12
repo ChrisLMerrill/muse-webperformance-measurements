@@ -1,8 +1,8 @@
-A project extension for the Muse Test Framework and MuseIDE. Adds tools for collecting and storing measurements of events in a Muse test. Also allows configuring performance goals and assessing the performance of the system against those goals. 
+A project extension for the [Muse Test Framework](https://github.com/ChrisLMerrill/muse) and [MuseIDE](http://ide4selenium.com). Adds tools for collecting and storing measurements of events in a Muse test. Also allows configuring performance goals and assessing the performance of the system against those goals. 
 
 # Capabilities
 
-This extension adds these capabilities (Context Initializers) to a project:
+This extension adds these plugins to a project:
 
 1. Step Duration Collector
 2. Step Duration Goal Assessor
@@ -107,7 +107,7 @@ Here is an example of the step configured with:
 
 ![](readme-images/readme-stepdurationgoalassessor-museide-stepconfig.png)
 
-# Thanks and Credits
+# Credits
 
 I originally developed this as part of my load testing work for [Web Performance](http://webperformance.com/). Thanks 
 goes there for allowing me to open-source the work. I have several posts on the 
