@@ -107,3 +107,10 @@ Here is an example of the step configured with:
 
 ![](readme-images/readme-stepdurationgoalassessor-museide-stepconfig.png)
 
+# Thanks and Credits
+
+I originally developed this as part of my load testing work for [Web Performance](http://webperformance.com/). Thanks 
+goes there for allowing me to open-source the work. I have several posts on the 
+[Web Performance Blog](https://www.webperformance.com/load-testing-tools/blog/) related to 
+[MuseIDE](https://www.webperformance.com/load-testing-tools/blog/category/museide/) and 
+[load testing](https://www.webperformance.com/load-testing-tools/blog/category/load-testing/).  
