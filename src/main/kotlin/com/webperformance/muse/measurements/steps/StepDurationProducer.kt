@@ -1,14 +1,20 @@
 package com.webperformance.muse.measurements.steps
 
-import com.webperformance.muse.measurements.*
-import com.webperformance.muse.measurements.containers.*
-import org.musetest.core.*
-import org.musetest.core.context.*
+import com.webperformance.muse.measurements.Measurement
+import com.webperformance.muse.measurements.Measurements
+import com.webperformance.muse.measurements.MeasurementsProducer
+import com.webperformance.muse.measurements.TaskDurationCalculator
+import com.webperformance.muse.measurements.containers.MultipleMeasurement
+import org.musetest.core.MuseEvent
+import org.musetest.core.MuseEventListener
+import org.musetest.core.MuseExecutionContext
+import org.musetest.core.context.SteppedTestExecutionContext
 import org.musetest.core.events.*
-import org.musetest.core.plugins.*
-import org.musetest.core.step.*
-import org.musetest.core.step.descriptor.*
-import org.musetest.core.suite.*
+import org.musetest.core.plugins.GenericConfigurablePlugin
+import org.musetest.core.step.StepConfiguration
+import org.musetest.core.step.descriptor.StepDescriptors
+import org.musetest.core.suite.TestSuiteExecutionContext
+import org.musetest.core.test.TestConfiguration
 
 /**
  * Collect step duration measurements for tagged steps. Expects to have the measurements collected and sent to MeasurementsConsumer(s).
@@ -38,27 +44,17 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 		if (!applyToThisTest(context))
 			return false
 		
-		if (context is TestSuiteExecutionContext)
-		{
-			context.addPlugin(this)
-			return true
-		}
-		return false
+        context.addPlugin(this)
+        return true
 	}
 	
 	override fun applyToContextType(context: MuseExecutionContext?): Boolean
 	{
-		return context is TestSuiteExecutionContext || context is SteppedTestExecutionContext
+		return context is TestSuiteExecutionContext
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
-		if (context is SteppedTestExecutionContext && initialized)
-		{
-			TestEventListener(context)
-			return
-		}
-		
 		if (context !is TestSuiteExecutionContext)
 			return
 		
@@ -68,6 +64,8 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 		add_test_id = configuration.isAddTestId(context)
 		add_status = configuration.isAddStepStatus(context)
 		descriptors = context.getProject().stepDescriptors
+
+        TestSuiteEventListener(context)
 	}
 	
 	@Synchronized
@@ -81,13 +79,12 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 			val timestamp = System.currentTimeMillis()
 			val counts = calculator.getRunningTaskCounts()
 			for (step_id in counts.keys)
-				collected.add(createMeasurement(step_id, "running", counts[step_id]!!, timestamp, null))
+				collected.add(createMeasurement(step_id, "running", counts.getValue(step_id), timestamp, null))
 			val durations = calculator.getRunningTaskDurations(timestamp)
 			for (step_id in durations.keys)
-				collected.add(createMeasurement(step_id, "running_duration", durations[step_id]!!, timestamp, null))
+				collected.add(createMeasurement(step_id, "running_duration", durations.getValue(step_id), timestamp, null))
 		}
-		
-		
+
 		return collected
 	}
 	
@@ -95,7 +92,7 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 	fun processEvent(event: MuseEvent, step: StepConfiguration, context_id: String, test_id: String)
 	{
 		if (StartStepEventType.TYPE_ID == event.typeId)
-			calculator.recordStartTime(context_id, step.stepId.toString(), event.timestamp)
+            calculator.recordStartTime(context_id, step.stepId.toString(), event.timestamp)
 		else if (EndStepEventType.TYPE_ID == event.typeId)
 		{
 			val step_id = step.stepId.toString()
@@ -105,12 +102,11 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 				val measurement = createMeasurement(step_id, "duration", duration, event.timestamp, test_id)
 				if (add_status)
 				{
-					if (event.hasTag(MuseEvent.FAILURE))
-						measurement.addMetadata(Measurement.META_STATUS, FAILURE)
-					else if (event.hasTag(MuseEvent.ERROR))
-						measurement.addMetadata(Measurement.META_STATUS, ERROR)
-					else
-						measurement.addMetadata(Measurement.META_STATUS, SUCCESS)
+                    when {
+                        event.hasTag(MuseEvent.FAILURE) -> measurement.addMetadata(Measurement.META_STATUS, FAILURE)
+                        event.hasTag(MuseEvent.ERROR) -> measurement.addMetadata(Measurement.META_STATUS, ERROR)
+                        else -> measurement.addMetadata(Measurement.META_STATUS, SUCCESS)
+                    }
 				}
 				measurements.add(measurement)
 			}
@@ -128,7 +124,29 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 			measured.addMetadata(Measurement.META_TEST, test_id)
 		return measured
 	}
-	
+
+    inner class TestSuiteEventListener(val context: TestSuiteExecutionContext) : MuseEventListener
+    {
+        init
+        {
+            context.addEventListener(this)
+        }
+
+        override fun eventRaised(event: MuseEvent)
+        {
+            if (StartSuiteTestEventType.TYPE_ID == event.typeId)
+            {
+                val config_var = StartSuiteTestEventType.getConfigVariableName(event)
+                val config = context.getVariable(config_var) as TestConfiguration
+                val test_context = config.context()
+                if (test_context is SteppedTestExecutionContext)
+                    TestEventListener(test_context)
+            }
+            else if (EndSuiteEventType.TYPE_ID == event.typeId)
+                context.removeEventListener(this)
+        }
+    }
+
 	inner class TestEventListener(val context: SteppedTestExecutionContext) : MuseEventListener
 	{
 		init {
@@ -147,16 +165,14 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 					return
 				processEvent(event, step, context.hashCode().toString(), context.test.id)
 			}
-			else if (EndTestEventType.TYPE_ID == event.typeId)
-				context.removeEventListener(this)
 		}
 	}
 	
 	companion object
 	{
-		val SUBJECT_TYPE = "step"
-		val FAILURE = "failure"
-		val ERROR = "error"
-		val SUCCESS = "success"
+		const val SUBJECT_TYPE = "step"
+		const val FAILURE = "failure"
+		const val ERROR = "error"
+		const val SUCCESS = "success"
 	}
 }
