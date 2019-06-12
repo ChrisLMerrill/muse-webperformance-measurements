@@ -8,6 +8,7 @@ import org.musetest.core.events.*
 import org.musetest.core.plugins.*
 import org.musetest.core.step.*
 import org.musetest.core.suite.*
+import org.musetest.core.test.TestConfiguration
 
 /**
  * Collects step metrics for all steps (in aggregate).
@@ -17,46 +18,17 @@ import org.musetest.core.suite.*
 class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfiguration) : GenericConfigurablePlugin(configuration), MeasurementsProducer
 {
 	private var step_tag: String? = null
-	private var initialized = false
 	private val producers = mutableListOf<StepMeasurementProducer>()
-	
-	override fun conditionallyAddToContext(context: MuseExecutionContext, automatic: Boolean): Boolean
-	{
-		if (!applyToContextType(context))
-			return false
-		if (automatic)
-		{
-			if (!applyAutomatically(context))
-				return false
-		}
-		if (!applyToThisTest(context))
-			return false
-		
-		if (context is TestSuiteExecutionContext)
-		{
-			context.addPlugin(this)
-			return true
-		}
-		return false
-	}
 	
 	override fun applyToContextType(context: MuseExecutionContext?): Boolean
 	{
-		return context is TestSuiteExecutionContext || context is SteppedTestExecutionContext
+		return context is TestSuiteExecutionContext
 	}
 	
 	override fun initialize(context: MuseExecutionContext)
 	{
-		if (context is SteppedTestExecutionContext && initialized)
-		{
-			TestEventListener(context)
-			return
-		}
-		
-		if (!(context is TestSuiteExecutionContext))
-			return
-		
-		initialized = true
+        if (context !is TestSuiteExecutionContext)
+            return
 
 		step_tag = configuration.getStepTag(context)
 		if (configuration.calculateOverallAverageDuration(context))
@@ -69,6 +41,7 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 		
 		if (configuration.countTotalSteps(context) && !configuration.calculateOverallAverageDuration(context))
 			producers.add(StepCountMeasurementProducer())
+        TestSuiteEventListener(context)
 	}
 	
 	@Synchronized
@@ -86,7 +59,29 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 	    for (producer in producers)
 			producer.processEvent(event, step, test_id)
 	}
-	
+
+    inner class TestSuiteEventListener(val context: TestSuiteExecutionContext) : MuseEventListener
+    {
+        init
+        {
+            context.addEventListener(this)
+        }
+
+        override fun eventRaised(event: MuseEvent)
+        {
+            if (StartSuiteTestEventType.TYPE_ID == event.typeId)
+            {
+                val config_var = StartSuiteTestEventType.getConfigVariableName(event)
+                val config = context.getVariable(config_var) as TestConfiguration
+                val test_context = config.context()
+                if (test_context is SteppedTestExecutionContext)
+                    TestEventListener(test_context)
+            }
+            else if (EndSuiteEventType.TYPE_ID == event.typeId)
+                context.removeEventListener(this)
+        }
+    }
+
 	inner class TestEventListener(val context: SteppedTestExecutionContext) : MuseEventListener
 	{
 		init {
@@ -105,8 +100,6 @@ class StepMeasurementsProducer(val configuration: StepMeasurementsProducerConfig
 					return
 				processEvent(event, step, context.hashCode().toString())
 			}
-			else if (EndTestEventType.TYPE_ID == event.typeId)
-				context.removeEventListener(this)
 		}
 	}
 }

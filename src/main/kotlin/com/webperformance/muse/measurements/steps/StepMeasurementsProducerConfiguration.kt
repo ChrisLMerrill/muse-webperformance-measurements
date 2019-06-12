@@ -16,9 +16,8 @@ import org.musetest.core.values.descriptor.*
 	MuseSubsourceDescriptor(displayName = "Apply automatically?", description = "If this source resolves to true, this plugin configuration will be automatically applied to tests", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.AUTO_APPLY_PARAM),
 	MuseSubsourceDescriptor(displayName = "Apply only if", description = "Apply only if this source this source resolves to true", type = SubsourceDescriptor.Type.Named, name = GenericConfigurablePlugin.APPLY_CONDITION_PARAM),
 	MuseSubsourceDescriptor(displayName = "Step tag", description = "If this parameter is present, only collect measurements on steps tagged with the value of this parameter", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.STEP_TAG_PARAM, optional = true),
-	MuseSubsourceDescriptor(displayName = "Overall Average", description = "If true, compute the overall average duration of all measured steps", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.OVERALL_AVG_PARAM, optional = true),
-	MuseSubsourceDescriptor(displayName = "Completed Steps", description = "If true, count total steps completed", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.OVERALL_COMPLETED_PARAM, optional = true)
-//	MuseSubsourceDescriptor(displayName = "Multiple Averages", description = "If true, compute average durations for each individual step (in addition to the overall average)", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.MULTIPLE_AVGS_PARAM, optional = true)
+	MuseSubsourceDescriptor(displayName = "Overall Average", description = "If true, compute the overall average duration of all measured steps", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.OVERALL_AVG_PARAM, optional = true, defaultValue = "true"),
+	MuseSubsourceDescriptor(displayName = "Completed Steps", description = "If true, count total steps completed", type = SubsourceDescriptor.Type.Named, name = StepMeasurementsProducerConfiguration.OVERALL_COMPLETED_PARAM, optional = true, defaultValue = "true")
 )
 class StepMeasurementsProducerConfiguration : GenericResourceConfiguration(), PluginConfiguration
 {
@@ -99,7 +98,6 @@ class StepMeasurementsProducerConfiguration : GenericResourceConfiguration(), Pl
 		const val STEP_TAG_PARAM = "steptag"
 		const val OVERALL_AVG_PARAM = "overall-avg"
 		const val OVERALL_COMPLETED_PARAM = "ovarall-completed"
-		const val MULTIPLE_AVGS_PARAM = "multiple-avgs"
 	}
 	
 }
