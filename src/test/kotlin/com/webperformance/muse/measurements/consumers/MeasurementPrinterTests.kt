@@ -3,6 +3,7 @@ package com.webperformance.muse.measurements.consumers
 import com.webperformance.muse.measurements.*
 import com.webperformance.muse.measurements.containers.*
 import org.junit.*
+import org.musetest.core.mocks.MockSteppedTestExecutionContext
 import java.io.*
 
 class MeasurementPrinterTests
@@ -50,6 +51,7 @@ class MeasurementPrinterTests
 	fun setup()
 	{
 		printer.setStream(printstream)
+        printer.initialize(MockSteppedTestExecutionContext())
 	}
 	
 	val outstream = ByteArrayOutputStream()
