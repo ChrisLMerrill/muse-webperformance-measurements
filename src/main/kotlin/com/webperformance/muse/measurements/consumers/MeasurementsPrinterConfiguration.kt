@@ -38,13 +38,16 @@ class MeasurementsPrinterConfiguration : GenericResourceConfiguration(), PluginC
     fun getIgnoredSubjects(context: MuseExecutionContext): List<String>
     {
         val ignored = mutableListOf<String>()
-        val config = parameters[MeasurementsPrinterConfiguration.IGNORE_SUBJECT_PARAM]
-        if (config != null)
+        if (parameters != null)
         {
-            val source = config.createSource()
-            val ignore_list = source.resolveValue(context)
-            if (ignore_list != null)
-                ignored.add(ignore_list.toString())
+            val config = parameters[MeasurementsPrinterConfiguration.IGNORE_SUBJECT_PARAM]
+            if (config != null)
+            {
+                val source = config.createSource()
+                val ignore_list = source.resolveValue(context)
+                if (ignore_list != null)
+                    ignored.add(ignore_list.toString())
+            }
         }
         return ignored
     }
