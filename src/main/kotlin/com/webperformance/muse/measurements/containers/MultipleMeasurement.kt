@@ -10,7 +10,8 @@ class MultipleMeasurement() : Measurements
 	{
 		list.add(first)
 	}
-	
+
+    @Synchronized
 	fun add(next: Measurement)
 	{
 		list.add(next)
