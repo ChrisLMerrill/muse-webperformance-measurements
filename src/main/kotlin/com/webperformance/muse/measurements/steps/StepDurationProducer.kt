@@ -88,7 +88,6 @@ class StepDurationProducer(val configuration: StepDurationProducerConfiguration)
 		return collected
 	}
 	
-	@Synchronized
 	fun processEvent(event: MuseEvent, step: StepConfiguration, context_id: String, test_id: String)
 	{
 		if (StartStepEventType.TYPE_ID == event.typeId)
