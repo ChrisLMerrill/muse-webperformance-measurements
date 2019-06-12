@@ -4,33 +4,36 @@ import com.webperformance.muse.measurements.Measurements
 import com.webperformance.muse.measurements.MeasurementsConsumer
 import org.musetest.core.MuseExecutionContext
 import org.musetest.core.plugins.GenericConfigurablePlugin
-import org.musetest.core.resource.generic.GenericResourceConfiguration
 import org.musetest.core.suite.TestSuiteExecutionContext
 import java.io.PrintStream
+import java.util.*
 
-class MeasurementsPrinter(configuration: GenericResourceConfiguration) : GenericConfigurablePlugin(configuration), MeasurementsConsumer
+class MeasurementsPrinter(val configuration: MeasurementsPrinterConfiguration) : GenericConfigurablePlugin(configuration), MeasurementsConsumer
 {
 	override fun acceptMeasurements(measurements: Measurements)
 	{
 		for (measurement in measurements.iterator())
 		{
-			val builder = StringBuilder()
-			for (name in measurement.metadata.keys)
-			{
-				if (builder.length > 0)
-					builder.append(", ")
-				builder.append(name)
-				builder.append("=")
-				builder.append(measurement.metadata[name])
-			}
-			getStream().println("${measurement.value} : ${builder}")
+            if (!_ignore_subjects.contains(measurement.metadata["subject"]))
+            {
+                val builder = StringBuilder()
+                for (name in measurement.metadata.keys)
+                {
+                    if (builder.length > 0)
+                        builder.append(", ")
+                    builder.append(name)
+                    builder.append("=")
+                    builder.append(measurement.metadata[name])
+                }
+                getStream().println("${measurement.value} : ${builder}")
+            }
 		}
 	}
 	
-	override fun initialize(context: MuseExecutionContext?)
+	override fun initialize(context: MuseExecutionContext)
 	{
-		// here would be the place to read the configuration and determine where to send the output
-	}
+        _ignore_subjects = configuration.getIgnoredSubjects(context)
+    }
 	
 	override fun applyToContextType(context: MuseExecutionContext?): Boolean
 	{
@@ -48,4 +51,5 @@ class MeasurementsPrinter(configuration: GenericResourceConfiguration) : Generic
 	}
 	
 	var _stream = System.out
+    lateinit var _ignore_subjects : List<String>
 }
