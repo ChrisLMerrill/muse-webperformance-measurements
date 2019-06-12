@@ -9,7 +9,8 @@ import org.slf4j.*
 class TaskDurationCalculator
 {
 	val start_times = mutableMapOf<String, MutableMap<String,Long>>()
-	
+
+    @Synchronized
 	fun recordStartTime(instance_id: String, task_id: String, time: Long): Boolean
 	{
 		val map = getMapForTask(task_id)
@@ -26,6 +27,7 @@ class TaskDurationCalculator
 	 * @param instance_id The id of this specific instance of the task (because the task may be in progress several times, simultaneously)
 	 * @param task_id The id of the task being executed. The same task (e.g. 
 	 */
+    @Synchronized
 	fun getDuration(instance_id: String, task_id: String, time: Long): Long?
 	{
 		val map = getMapForTask(task_id)
@@ -39,6 +41,7 @@ class TaskDurationCalculator
 		return time - started
 	}
 
+    @Synchronized
 	fun getRunningTaskCounts(): Map<String, Long>
 	{
 		val counts = mutableMapOf<String, Long>()
@@ -51,6 +54,7 @@ class TaskDurationCalculator
 		return counts
 	}
 	
+    @Synchronized
 	fun getRunningTaskDurations(now: Long): Map<String, Long>
 	{
 		val durations = mutableMapOf<String, Long>()
